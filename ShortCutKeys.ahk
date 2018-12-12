@@ -20,6 +20,7 @@ launchCounter := 1
 
 ;; Remember what was launched so that the correct end sequence can be sent.
 launchType := ""
+launchWin := ""
 
 ;; Array to store launch commands (positional and sequential).
 launchMap := {}
@@ -240,7 +241,9 @@ reset()
 {
 	clearClipBoard()
 	global launchType
+	global launchWin
 	launchType := ""
+	launchWin := ""
 	global launchMap
 	launchMap := {}
 	global launchCounter
@@ -373,6 +376,12 @@ RaiseWindow( name )
 }
 
 
+closeBrowserWindow()
+{
+	Send ^w
+}
+
+
 ;; Paste plain clipboard text.
 paste()
 {
@@ -424,17 +433,67 @@ pauseOrPlayYouTubeOrVideoLAN()
 }
 
 
+toggleMuteYouTube()
+{
+	Send m
+}
+
+
+slowDownYouTube()
+{
+	Send +<
+}
+
+
+speedupYouTube()
+{
+	Send +>
+}
+
+
+quitVideoLAN()
+{
+	Send ^q
+}
+
+
 ; Full screen normal URL.
-fullScreenYouTube()
+toggleFullScreenNormalYouTube()
 {
 	Send f
 }
 
 
 ; Full screen embed URL.
-fullScreenEmbedYouTube()
+toggleFullScreenEmbedYouTube()
 {
 	Send {F11}
+}
+
+
+; Full screen embed URL.
+toggleFullScreenYouTube( embed = 1 )
+{
+	if ( embed )
+	{
+		toggleFullScreenEmbedYouTube()
+	}
+	else
+	{
+		toggleFullScreenNormalYouTube()
+	}
+}
+
+
+winNext()
+{
+	Send +#{Right}
+}
+
+
+winPrevious()
+{
+	Send +#{Left}
 }
 
 
@@ -497,8 +556,13 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = 0, embed = 1 )
  
 
 ;; Launch YouTube clip full screen on projected displays.
-launchYouTube( youTubeURLOrId = "", autoPlay = 0, winTitle = "" )
+launchYouTube( youTubeURLOrId = "", autoPlay = 0, embed = 1, winTitle = "" )
 {
+	if ( isLaunched() )
+	{
+		return
+	}
+	
 	if ( youTubeURLOrId == "" )
 	{
 		youTubeURLOrId := getClipBoard()
@@ -509,7 +573,7 @@ launchYouTube( youTubeURLOrId = "", autoPlay = 0, winTitle = "" )
 		}
 	}
 	
-	youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay )
+	youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay, embed )
 	
 	; MsgBox %youTubeURL%
 
@@ -525,13 +589,16 @@ launchYouTube( youTubeURLOrId = "", autoPlay = 0, winTitle = "" )
 		WinWait %winTitle%,,8
 	}
 	
-	global launchType
-	launchType := "YouTube"
-	
 	Sleep 1400
 	
-	; fullScreenYouTube()
-	fullScreenEmbedYouTube()
+	if ( embed )
+	{
+		storeLaunched( "EmbedYouTube" )
+	}
+	else
+	{
+		storeLaunched( "YouTube" )
+	}
 	
 	playYouTube()
 
@@ -543,32 +610,112 @@ launchYouTube( youTubeURLOrId = "", autoPlay = 0, winTitle = "" )
 
 
 ;; Launch YouTube clip full screen on projected displays.
-projectYouTube( youTubeURLOrId = "", autoPlay = 0, winTitle = ""  )
+projectYouTube( youTubeURLOrId = "", autoPlay = 0, embed = 1, winTitle = ""  )
 {
-	launchYouTube( youTubeURLOrId, autoPlay, winTitle )
-	Send +#{Right}
+	launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle )
+	winNext()
+	toggleFullScreenYouTube( embed )
+}
+
+
+isLaunched()
+{
+	global launchWin
+	
+	launched := false
+	
+	if ( launchWin != "" )
+	{
+		launched := true
+	}
+
+	return launched
+}
+
+
+;; Store the launched window details.
+storeLaunched( type )
+{	
+	global launchType
+	global launchWin
+	
+	launchType := type
+	WinGetActiveTitle, launchWin
+	; MsgBox Type %launchType% Win %launchWin%
+}
+
+
+checkWinClosed( winTitle )
+{
+	; Assume true if no title.
+	winClosed = true
+
+	if ( winTitle != "" )
+	{
+		Sleep 200
+
+		if ( 0 != WinExist( launchWin ) )
+		{
+			winClosed = false
+		}
+	}
+	
+	return winClosed
 }
 
 
 ;; Swap projected application to PC screen.
-endProject()
+endLaunched()
 {
 	global launchType
+	global launchWin
 	
-	Send +#{Left}
+	; MsgBox Type %launchType% Win %launchWin%
 	
-	if ( launchType == "YouTube" )
+	endLaunch := true
+
+	if ( launchWin != "" )
 	{
-		Send {F11}
-	}
-	else if ( launchType == "VideoLAN" )
-	{
-		; pauseOrPlayYouTubeOrVideoLAN()
-		; Send f
-		Send ^q
+		WinActivate, %launchWin%
+		WinWait %launchWin%,,2
+		
+		if ( 0 == WinActive( launchWin ) )
+		{
+			endLaunch := false
+		}
 	}
 	
-	launchType := ""
+	if ( endLaunch )
+	{
+		if ( launchType == "YouTube" )
+		{
+			pauseOrPlayYouTubeOrVideoLAN()
+			; toggleMuteYouTube()
+			toggleFullScreenNormalYouTube()
+			winPrevious()
+			Sleep 400
+			closeBrowserWindow()
+		}
+		else if ( launchType == "EmbedYouTube" )
+		{
+			pauseOrPlayYouTubeOrVideoLAN()
+			; toggleMuteYouTube()
+			toggleFullScreenEmbedYouTube()
+			winPrevious()
+			Sleep 400
+			closeBrowserWindow()
+		}
+		else if ( launchType == "VideoLAN" )
+		{
+			quitVideoLAN()
+		}
+	}
+		
+	if ( checkWinClosed( launchWin ) )
+	{
+		launchType := ""
+		launchWin := ""
+	}
 }
 
 
@@ -609,6 +756,11 @@ projectHoveredYouTube()
 ;; Launch YouTube clip full screen on projected displays.
 launchVideoLAN( videoFile = "", autoPlay = 0 )
 {
+	if ( isLaunched() )
+	{
+		return
+	}
+	
 	if ( videoFile == "" )
 	{
 		; This also gets selected file.
@@ -620,8 +772,7 @@ launchVideoLAN( videoFile = "", autoPlay = 0 )
 		return
 	}
 	
-	global launchType
-	launchType := "VideoLAN"
+	storeLaunched( "VideoLAN" )
 	
 	; MsgBox, %videoFile%
 	Run "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe" --started-from-file "%videoFile%"
@@ -754,7 +905,7 @@ return
 
 ;; Call test function.
 #t::
-test( "C:\Users\Zed\Videos\Videos22\December 2016 Matt Filming 2\P1120970.MOV" )
+test( "Z:\Sunday Services\C Anderson.MOV" )
 return
 
 ;; Reload the AutoHotKey script.
@@ -776,7 +927,8 @@ return
 #s::youTubeSearch()
 
 ;; End project.
-#q::endProject()
+; Win-q has is caught by some other application.
+!q::endLaunched()
 
 ;; Open YouTube search.
 #y::projectYouTube( "", 1 )
@@ -790,6 +942,12 @@ return
 
 ;; Show selected video file full screen on the projected display.
 #v::projectVideoLAN( "", 1 )
+
+;; Show stored launch commands.
+!#v::showStoredLaunchCommands()
+
+;; Show example YouTube video full screen on the projected display (autoplay).
+^#v::projectYouTube( "LF3Zr3D2UmA", 1 ) ; , "We Want To See Jesus Lifted High" )
 
 ;; Store positional launch command 1 for later launch.
 ^+1::storeLaunchCommand( "p1" )
@@ -815,10 +973,6 @@ return
 ;; Store positional launch command 8 for later launch.
 ^+8::storeLaunchCommand( "p8" )
 
-; Invoke stored launch command 1.
-; Doesn't work.
-; ^{Numpad1}::launchStoredCommand( "p1" )
-
 ;; Invoke stored launch command 1.
 ^1::launchStoredCommand( "p1" )
 
@@ -843,20 +997,17 @@ return
 ;; Invoke stored launch command 8.
 ^8::launchStoredCommand( "p8" )
 
-;; Show stored launch commands.
-!#v::showStoredLaunchCommands()
-
 
 ; Setup quick display of videos, YouTube clips etc. here.
 
-;; Show YouTube video full screen on the projected display (paused).
+;; Show example YouTube video full screen on the projected display (paused).
 ::yt1::
-projectYouTube( "MknJkRGErwY", 0 ) ; , "The rarest" )
+projectYouTube( "LF3Zr3D2UmA", 0 ) ; , "We Want To See Jesus Lifted High" )
 return
 
-;; Show YouTube video full screen on the projected display (autoplay).
+;; Show example YouTube video full screen on the projected display (autoplay).
 ::yt2::
-projectYouTube( "MknJkRGErwY", 1 ) ; , "The rarest" )
+projectYouTube( "LF3Zr3D2UmA", 1 ) ; , "We Want To See Jesus Lifted High" )
 return
 
 ;;
@@ -864,12 +1015,16 @@ return
 
 ;; Show video file full screen on the projected display.
 ; ::v1::
-; launchVideoLAN( "C:\Users\Zed\Videos\Videos22\December 2016 Matt Filming 2\P1120970.MOV" )
+; launchVideoLAN( "Z:\Sunday Services\C Anderson.MOV" )
 ; return
 ; 
 ; ::v2::
 ; projectVideoLAN()
 ; return
+
+; Invoke stored launch command 1.
+; Doesn't work.
+; ^{Numpad1}::launchStoredCommand( "p1" )
 
 ; ;; Make current window fill half of the screen to the left.
 ; Alt & Left::    Win__HalfLeft()
