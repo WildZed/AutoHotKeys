@@ -13,6 +13,7 @@ EmbedYouTubeURLAutoPlay := "?autoplay=1"
 EmbedYouTubeURLNoAutoPlay := "?autoplay=0"
 EmbedYouTubePlaysInline := "&playsinline=1" ; Doesn't work.
 YouTubeIdSize := 11
+SelectedBrowser := "Edge"
 
 ; lastCopyTime = 0
 ; lastClipboard = ""
@@ -25,6 +26,7 @@ launchCounter := 1
 launchType := ""
 launchTypeModifier := ""
 launchWin := ""
+launchWinID := 0
 
 ;; Array to store launch commands (positional and sequential).
 launchMap := {}
@@ -241,19 +243,35 @@ TrayMenuHdlr_GuiClose:
 return
 
 
-reset()
+resetLaunched()
 {
-    clearClipBoard()
     global launchType
     global launchTypeModifier
     global launchWin
-    launchType := ""
-    launchTypeModifier := ""
-    launchWin := ""
+	global launchWinID
+	
+	launchType := ""
+	launchTypeModifier := ""
+	launchWin := ""
+	launchWinID := 0
+}
+
+
+resetLaunchMap()
+{
     global launchMap
-    launchMap := {}
     global launchCounter
+	
+    launchMap := {}
     launchCounter = 1
+}
+
+
+reset()
+{
+    clearClipBoard()
+    resetLaunched()
+	resetLaunchMap()
 }
 
 
@@ -399,16 +417,57 @@ paste()
 
 isLaunched()
 {
-    global launchWin
+    global launchWinID
     
     launched := false
     
-    if ( launchWin != "" )
+    if ( launchWinID != 0 )
     {
-        launched := true
+        launched := ( 0 != WinExist( ahk_id launchWinID ) )
     }
+	
+	; MsgBox %launched% %launchWin%
+		
+	; if ( launched )
+	; {
+	; 	MsgBox %launchWin%
+	; }
 
     return launched
+}
+
+
+isWindowFullScreen( winTitleOrID = "" )
+{
+    ; Checks if the specified or current window is full screen.
+    ; Code from NiftyWindows source (with only slight modification).
+
+    ; Use WinExist of another means to get the Unique ID (HWND) of the desired window.
+
+    ; if ( ! winTitleOrID )
+	; {
+    ;     return false
+	; }
+
+    WinGet, winMinMax, MinMax, %winTitleOrID%
+    WinGetPos, winX, winY, winW, winH, %winTitleOrID%
+	
+	isFullScreen := false
+
+    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == A_ScreenWidth && winH == A_ScreenHeight )
+    {
+        WinGetClass, winClass, %winTitleOrID%
+        WinGet, winProcessName, ProcessName, %winTitleOrID%
+        SplitPath, winProcessName, , , winProcessExt
+
+        if ( winClass != "Progman" && winProcessExt != "scr" )
+        {
+            ; Program is full-screen.
+            isFullScreen := true
+        }
+    }
+	
+	return isFullScreen
 }
 
 
@@ -431,14 +490,11 @@ checkFullScreen( fullScreen )
     {
         return true
     }
-    else if ( 0 == fullScreen )
-    {
-        return isWindowMaximised()
-    }
-    else
-    {
-        return ! isWindowMaximised()
-    }
+	
+	isFullScreen := isWindowFullScreen()
+	fullScreenMatch := ( ( 0 == fullScreen ) == isFullScreen )
+
+	return fullScreenMatch
 }
 
 
@@ -448,10 +504,17 @@ storeLaunched( type, modifier = "" )
     global launchType
     global launchTypeModifier
     global launchWin
+	global launchWinID
     
     launchType := type
     launchTypeModifier := modifier
     WinGetActiveTitle, launchWin
+	WinGet, launchWinID, ID
+	
+	if ( launchWin == "" )
+	{
+		MsgBox "Failed to store launchWin!"
+	}
     ; MsgBox Type %launchType% Win %launchWin%
 }
 
@@ -460,9 +523,9 @@ windowOrLaunchedWindow( winTitle = "" )
 {
     if ( winTitle == "" )
     {
-        global launchWin
+        global launchWinID
     
-        winTitle := launchWin
+        winTitle := ahk_id %launchWinID%
     }
     
     return winTitle
@@ -497,9 +560,9 @@ checkActiveWindow( launched = true )
         return true
     }
     
-    global launchWin
+    global launchWinID
     
-    winIsActive := ( 0 != WinActive( launchWin ) )
+    winIsActive := ( 0 != WinActive( ahk_id launchWinID ) )
 
     if ( ! winIsActive )
     {
@@ -552,9 +615,9 @@ checkActiveWindowOrSwitchToLaunched( launched = true )
 
 clickWinCentre()
 {
-    global launchWin
+    global launchWinID
     
-    WinGetPos x, y, width, height, %launchWin%
+    WinGetPos x, y, width, height, ahk_id %launchWinID%
 
     x := x + ( width / 2 )
     y := y + ( height / 2 )
@@ -568,21 +631,18 @@ clickWinCentre()
 ;; Swap projected application to PC screen.
 endLaunched()
 {
-    global launchType
-    global launchTypeModifier
-    global launchWin
-    
-    ; MsgBox Type %launchType% Win %launchWin%
-    
-    if ( checkSwitchToWindow( launchWin ) )
+    if ( checkSwitchToWindow() )
     {
+		global launchType
+		global launchTypeModifier
+		
         if ( launchType == "YouTube" )
         {
             pauseOrPlayYouTubeOrVideoLAN()
-            toggleMuteYouTube()
-            toggleFullScreenYouTube( launchTypeModifier, true, 0 )
+            ; toggleMuteYouTube()
             winPrevious()
-            Sleep 400
+			toggleFullScreenYouTube( launchTypeModifier, true, 0 )
+            ; Sleep 400
             closeBrowserWindow()
         }
         else if ( launchType == "Video" )
@@ -591,13 +651,11 @@ endLaunched()
         }
     }
         
-    if ( checkWindowClosed( launchWin ) )
+    if ( checkWindowClosed() )
     {
         SoundBeep
         SoundBeep
-        launchType := ""
-        launchTypeModifier := ""
-        launchWin := ""
+		resetLaunched()
     }
 }
 
@@ -620,9 +678,67 @@ winPrevious( launched = true )
 }
 
 
+runWithInternetExplorer( url )
+{    
+    Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
+}
+
+
+runWithMSEdge( url )
+{
+    Run microsoft-edge:%url%
+    ; WinActivate ahk_class IEFrame
+}
+
+
 runWithFirefox( url )
 {
     Run "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" %url%
+}
+
+
+runWithOpera( url )
+{
+    Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
+}
+
+
+runWithSelectedBrowser( url )
+{
+	global SelectedBrowser
+	
+	if ( "IE" == SelectedBrowser )
+	{
+		runWithInternetExplorer( url )
+	}
+	else if ( "Edge" == SelectedBrowser )
+	{
+		runWithMSEdge( url )
+	}
+	else if ( "Firefox" == SelectedBrowser )
+	{
+		runWithFirefox( url )
+	}
+	else if ( "Opera" == SelectedBrowser )
+	{
+		runWithOpera( url )
+	}
+	else
+	{
+		Run %url%
+	}
+}
+
+
+activateInternetExplorer()
+{
+    WinActivate ahk_class IEFrame
+}
+
+
+activateMSEdge()
+{
+    WinActivate ahk_class ApplicationFrameWindow
 }
 
 
@@ -632,15 +748,36 @@ activateFirefox()
 }
 
 
-runWithInternetExplorer( url )
-{    
-    Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
+activateOpera()
+{
+    WinActivate ahk_class IEFrame
 }
 
 
-activateInternetExplorer()
+activateSelectedBrowser()
 {
-    WinActivate ahk_class IEFrame
+	global SelectedBrowser
+	
+	if ( "IE" == SelectedBrowser )
+	{
+		activateInternetExplorer()
+	}
+	else if ( "Edge" == SelectedBrowser )
+	{
+		activateMSEdge()
+	}
+	else if ( "Firefox" == SelectedBrowser )
+	{
+		activateFirefox()
+	}
+	else if ( "Opera" == SelectedBrowser )
+	{
+		activateOpera()
+	}
+	else
+	{
+		WinActivate
+	}
 }
 
 
@@ -654,31 +791,6 @@ focusInternetExplorer()
     ControlGetFocus, focusControl
     
     MsgBox %focusControl%
-}
-
-
-runWithMSEdge( url )
-{
-    Run start "microsoft-edge:" + %url%
-    ; WinActivate ahk_class IEFrame
-}
-
-
-activateMSEdge()
-{
-    WinActivate ahk_class IEFrame
-}
-
-
-runWithOpera( url )
-{
-    Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
-}
-
-
-activateOpera()
-{
-    WinActivate ahk_class IEFrame
 }
 
 
@@ -871,6 +983,7 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
 {
     if ( isLaunched() )
     {
+		SoundBeep
         return false
     }
     
@@ -888,9 +1001,10 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     
     ; MsgBox %youTubeURL%
 
-    runWithInternetExplorer( youTubeURL )
-    activateInternetExplorer()
+    runWithSelectedBrowser( youTubeURL )
+    ; activateSelectedBrowser()
     
+	; Not sure if this is working, hence the delay.
     if ( winTitle == "" )
     {
         WinWait - YouTube,,8
@@ -900,18 +1014,14 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
         WinWait %winTitle%,,8
     }
     
-    ; Sleep 1800
+	; A delay is required otherwise the activate doesn't work and the store and project don't work.
+    Sleep 1800
     
-    activateInternetExplorer()    
+    activateSelectedBrowser()    
     storeLaunched( "YouTube", embed )
     ; focusInternetExplorer() ; Doesn't work.
     ; Clicks to play or pause.
     playYouTube()
-
-    ; if ( autoPlay )
-    ; {
-    ;     ;pauseOrPlayYouTubeOrVideoLAN()
-    ; }
     
     return true
 }
@@ -967,6 +1077,7 @@ launchVideoLAN( videoFile = "", autoPlay = false )
 {
     if ( isLaunched() )
     {
+		SoundBeep
         return
     }
     
