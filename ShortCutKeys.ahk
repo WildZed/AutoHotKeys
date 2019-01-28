@@ -5,6 +5,8 @@ DetectHiddenWindows, on
 SetTitleMatchMode, 2
 
 WindowsPath := "C:\Windows"
+LogFile := "C:\tmp\shortcutkeys.log"
+Logging := false
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 NormalYouTubeURLSize := StrLen( NormalYouTubeURL )
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
@@ -243,6 +245,42 @@ TrayMenuHdlr_GuiClose:
 return
 
 
+createLog()
+{
+	global LogFile
+	global Logging
+	
+	if ( Logging )
+	{
+		file := FileOpen( LogFile, "w" )
+		file.Close()
+	}
+}
+
+
+log( text )
+{
+	global LogFile
+	global Logging
+	
+	if ( Logging )
+	{
+		; FileAppend, %text% "`n", %LogFile%
+		file := FileOpen( LogFile, "a" )
+		file.Write( text "`n" )
+		file.Close()
+	}
+}
+
+
+logActiveWindowID( label )
+{
+	activeWinID := WinExist( "A" )
+	
+	log( label " logActiveWindowID() -> " activeWinID )
+}
+
+
 resetLaunched()
 {
     global launchType
@@ -267,6 +305,12 @@ resetLaunchMap()
 }
 
 
+clearClipBoard()
+{
+    clipboard =
+}
+
+
 reset()
 {
     clearClipBoard()
@@ -275,9 +319,30 @@ reset()
 }
 
 
-clearClipBoard()
+reloadAndReset()
 {
-    clipboard =
+	Reload
+	createLog()
+}
+
+
+debugState()
+{
+	global Logging
+	global SelectedBrowser
+	global launchType
+	global launchTypeModifier
+	global launchWin
+	global launchWinID
+	
+	debugText := 			"Logging = " Logging "`n"
+	debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
+	debugText := debugText  "launchType = " launchType "`n"
+	debugText := debugText  "launchTypeModifier = " launchTypeModifier "`n"
+	debugText := debugText  "launchWin = " launchWin "`n"
+	debugText := debugText  "launchWinID = " launchWinID "`n"
+	
+	MsgBox %debugText%
 }
 
 
@@ -400,6 +465,32 @@ RaiseWindow( name )
 }
 
 
+windowIDExists( winID )
+{
+	if ( ! winID )
+	{
+		return false
+	}
+	
+	; SetTitleMatchMode, 3
+	; SetTitleMatchMode, Slow
+	; Sleep 200
+	; Doesn't work. Always returns id even when window is closed.
+	; The window disappears but there is a delay until the window id is cleared.
+	; Now using WinWaitClose.
+	checkExistWinID := WinExist( ahk_id %winID% )
+	; This seems to work, but there is a delay after closing the window before the count drops to 0.
+	WinGet winCount, Count, ahk_id %winID%
+	checkActiveWinID := WinActive( ahk_id %winID% )
+	
+	winExists := ( winCount || checkExistWinID || checkActiveWinID )
+
+	log( "windowIDExists() + " winID ", " winCount ", " checkExistWinID ", " checkActiveWinID " -> " winExists )
+
+	return winExists
+}
+
+
 closeBrowserWindow()
 {
     Send ^w
@@ -419,19 +510,13 @@ isLaunched()
 {
     global launchWinID
     
-    launched := false
-    
-    if ( launchWinID != 0 )
-    {
-        launched := ( 0 != WinExist( ahk_id launchWinID ) )
-    }
+	; AutoHotKeys is such a pile of *#£$e that adding in this line makes this function work!
+	; The call to WinExist appears to make the subsequent calls to detect the window id work.
+	logActiveWindowID( "isLaunched()" )
+	launched := windowIDExists( launchWinID )
+	checkActiveWindow()
 	
-	; MsgBox %launched% %launchWin%
-		
-	; if ( launched )
-	; {
-	; 	MsgBox %launchWin%
-	; }
+	log( "isLaunched() + " launchWinID " -> " launched )
 
     return launched
 }
@@ -467,6 +552,8 @@ isWindowFullScreen( winTitleOrID = "" )
         }
     }
 	
+	log( "isWindowFullScreen( " winTitleOrID " ) -> " isFullScreen )
+	
 	return isFullScreen
 }
 
@@ -493,6 +580,8 @@ checkFullScreen( fullScreen )
 	
 	isFullScreen := isWindowFullScreen()
 	fullScreenMatch := ( ( 0 == fullScreen ) == isFullScreen )
+	
+	log( "checkFullScreen( " fullScreen " ) -> " fullScreenMatch )
 
 	return fullScreenMatch
 }
@@ -508,47 +597,59 @@ storeLaunched( type, modifier = "" )
     
     launchType := type
     launchTypeModifier := modifier
-    WinGetActiveTitle, launchWin
-	WinGet, launchWinID, ID
 	
-	if ( launchWin == "" )
+	Loop, 8
 	{
-		MsgBox "Failed to store launchWin!"
+		launchWinID := WinExist( "A" )
+		
+		if ( launchWinID )
+		{
+			WinGetActiveTitle, launchWin
+			; WinGetTitle realTitle, ahk_id %launchWinID%
+			; log( "storeLaunched(), id title " realTitle )
+			break
+		}
+		
+		log( "storeLaunched( " type ", " modifier " ), unable to get window id" )
 	}
-    ; MsgBox Type %launchType% Win %launchWin%
+	
+	log( "storeLaunched( " type ", " modifier " ) -> " launchWin ", " launchWinID )
 }
 
 
-windowOrLaunchedWindow( winTitle = "" )
-{
-    if ( winTitle == "" )
+windowOrLaunchedWindowID( winTitle = "" )
+{	
+    if ( winTitle )
     {
+		winID := WinExist( %winTitle% )
+    }
+	else
+	{
         global launchWinID
     
-        winTitle := ahk_id %launchWinID%
-    }
-    
-    return winTitle
+        winID := launchWinID
+	}
+	
+   	log( "windowOrLaunchedWindowID( " winTitle " ) -> " winID )
+ 
+    return winID
 }
 
 
 checkWindowClosed( winTitle = "" )
 {
-    winTitle := windowOrLaunchedWindow( winTitle )
+    winID := windowOrLaunchedWindowID( winTitle )
     
     ; Assume true if no title.
     winClosed := true
 
-    if ( winTitle != "" )
+    if ( winID )
     {
-        Sleep 200
-
-        if ( 0 != WinExist( winTitle ) )
-        {
-            winClosed := false
-        }
+		winClosed := ! windowIDExists( launchWinID )
     }
-    
+	
+	log( "checkWindowClosed( " winTitle " ) + " winID " -> " winClosed )
+
     return winClosed
 }
 
@@ -562,40 +663,59 @@ checkActiveWindow( launched = true )
     
     global launchWinID
     
-    winIsActive := ( 0 != WinActive( ahk_id launchWinID ) )
+	checkActiveWinID := WinActive( ahk_id %launchWinID% )
+	winIsActive := ( 0 != checkActiveWinID )
 
     if ( ! winIsActive )
     {
         SoundBeep
         ; MsgBox %launchWin%
     }
-    
+	
+ 	log( "checkActiveWindow( " launched " ) + " launchWinID ", " checkActiveWinID " -> " winIsActive )
+   
     return winIsActive
 }
 
 
 checkSwitchToWindow( winTitle = "" )
 {
-    winTitle := windowOrLaunchedWindow( winTitle )
+    winID := windowOrLaunchedWindowID( winTitle )
     
-    if ( winTitle = "" )
+    if ( ! winID )
     {
+		log( "checkSwitchToWindow( " winTitle " ), no window to switch" )
+		
         SoundBeep
         return false
     }
     
-    WinActivate, %winTitle%
-    WinWait %winTitle%,,2
+    WinActivate ahk_id %winID%
+    WinWait ahk_id %winID%,,2
     
-    winIsActive := ( 0 != WinActive( winTitle ) )
+	winIsActive := ( 0 != WinActive( ahk_id %winID% ) )
     
     if ( ! winIsActive )
     {
         SoundBeep
-        ; MsgBox %winTitle%
     }
+	
+ 	log( "checkSwitchToWindow( " winTitle " ) + " winID " -> " winIsActive )
 
     return winIsActive
+}
+
+
+waitForCloseWindow( winTitle = "" )
+{
+    winID := windowOrLaunchedWindowID( winTitle )
+    
+    if ( ! winID )
+    {		
+        return false
+    }
+
+	WinWaitClose, ahk_id %winID%,, 8
 }
 
 
@@ -607,39 +727,66 @@ checkActiveWindowOrSwitchToLaunched( launched = true )
     {
         winOk := true
     }
-    
+	
+   	log( "checkActiveWindowOrSwitchToLaunched( " launched " ) -> " winOk )
+  
     return winOk
 }
 
 
 
-clickWinCentre()
+clickWindowCentre()
 {
+    global launchWin
     global launchWinID
+	
+	if ( ! launchWinID )
+	{
+		log( "clickWindowCentre(), missing launchWinID" )
+	}
     
-    WinGetPos x, y, width, height, ahk_id %launchWinID%
+	Loop, 8
+	{
+		WinGetPos x, y, width, height, ahk_id %launchWinID%
+		
+		if ( width )
+		{
+			break
+		}
+		
+		log( "clickWindowCentre() + " launchWinID ", unable to get window position details" )
+		
+		Sleep 200
+		WinActivate ahk_id %launchWinID%
+	}
 
-    x := x + ( width / 2 )
-    y := y + ( height / 2 )
-    
-    ; MsgBox, %x%, %y%
-    
-    Click, %x%, %y%
+    cx := x + ( width / 2 )
+    cy := y + ( height / 2 )
+	
+	log( "clickWindowCentre() + " launchWinID " + x=" x ", y=" y ", w=" width ", h=" height ", sw=" A_ScreenWidth ", sh=" A_ScreenHeight " -> cx=" cx ", cy=" cy )
+  
+    CoordMode, Mouse, Screen
+    Click, %cx%, %cy%
 }
 
 
 ;; Swap projected application to PC screen.
 endLaunched()
 {
+	logActiveWindowID( "endLaunched()" )
+
     if ( checkSwitchToWindow() )
     {
 		global launchType
 		global launchTypeModifier
 		
+		log( "endLaunched() + " launchType " + " launchTypeModifier ", switched to window, ending..." )
+		
         if ( launchType == "YouTube" )
         {
             pauseOrPlayYouTubeOrVideoLAN()
             ; toggleMuteYouTube()
+			; Move off projection screen first before toggling full screen and closing window.
             winPrevious()
 			toggleFullScreenYouTube( launchTypeModifier, true, 0 )
             ; Sleep 400
@@ -649,10 +796,16 @@ endLaunched()
         {
             quitVideo( launchTypeModifier )
         }
+		
+		waitForCloseWindow()
     }
-        
+	
+	logActiveWindowID( "endLaunched()" )
+       
     if ( checkWindowClosed() )
     {
+		log( "endLaunched(), window closed" )
+		
         SoundBeep
         SoundBeep
 		resetLaunched()
@@ -664,6 +817,7 @@ winNext( launched = true )
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
+		log( "winNext( " launched " ), send right" )
         Send +#{Right}
     }
 }
@@ -673,33 +827,9 @@ winPrevious( launched = true )
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
+		log( "winPrevious( " launched " ), send left" )
         Send +#{Left}
     }
-}
-
-
-runWithInternetExplorer( url )
-{    
-    Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
-}
-
-
-runWithMSEdge( url )
-{
-    Run microsoft-edge:%url%
-    ; WinActivate ahk_class IEFrame
-}
-
-
-runWithFirefox( url )
-{
-    Run "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" %url%
-}
-
-
-runWithOpera( url )
-{
-    Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
 }
 
 
@@ -709,19 +839,19 @@ runWithSelectedBrowser( url )
 	
 	if ( "IE" == SelectedBrowser )
 	{
-		runWithInternetExplorer( url )
+		Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
 	}
 	else if ( "Edge" == SelectedBrowser )
 	{
-		runWithMSEdge( url )
+		Run microsoft-edge:%url%
 	}
 	else if ( "Firefox" == SelectedBrowser )
 	{
-		runWithFirefox( url )
+		Run "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" %url%
 	}
 	else if ( "Opera" == SelectedBrowser )
 	{
-		runWithOpera( url )
+		Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
 	}
 	else
 	{
@@ -730,53 +860,86 @@ runWithSelectedBrowser( url )
 }
 
 
-activateInternetExplorer()
-{
-    WinActivate ahk_class IEFrame
-}
-
-
-activateMSEdge()
-{
-    WinActivate ahk_class ApplicationFrameWindow
-}
-
-
-activateFirefox()
-{
-    WinActivate ahk_class MozillaWindowClass
-}
-
-
-activateOpera()
-{
-    WinActivate ahk_class IEFrame
-}
-
-
 activateSelectedBrowser()
 {
 	global SelectedBrowser
 	
+	activated := false
+	activeWinID := 0
+	
 	if ( "IE" == SelectedBrowser )
 	{
-		activateInternetExplorer()
+		WinActivate ahk_class IEFrame
+		WinWaitActive ahk_class IEFrame,,1
+		WinExist( ahk_class IEFrame )
+		activeWinID := WinActive( ahk_class IEFrame )
 	}
 	else if ( "Edge" == SelectedBrowser )
 	{
-		activateMSEdge()
+		WinActivate ahk_class ApplicationFrameWindow
+		WinWaitActive ahk_class ApplicationFrameWindow,,1
+		WinExist( ahk_class ApplicationFrameWindow )
+		activeWinID := WinActive( ahk_class ApplicationFrameWindow )
 	}
 	else if ( "Firefox" == SelectedBrowser )
 	{
-		activateFirefox()
+		WinActivate ahk_class MozillaWindowClass
+		WinWaitActive ahk_class MozillaWindowClass,,1
+		WinExist( ahk_class MozillaWindowClass )
+		activeWinID := WinActive( ahk_class MozillaWindowClass )
 	}
 	else if ( "Opera" == SelectedBrowser )
 	{
-		activateOpera()
+		WinActivate ahk_class Chrome_WidgetWin_1
+		WinWaitActive ahk_class Chrome_WidgetWin_1,,1
+		WinExist( ahk_class Chrome_WidgetWin_1 )
+		activeWinID := WinActive( ahk_class Chrome_WidgetWin_1 )
+	}
+	
+	if ( activeWinID )
+	{
+		WinGetTitle windowTitle, ahk_id %activeWinID%
+		log( "activateSelectedBrowser(), active window " activeWinID ", " windowTitle )
+		WinShow, ahk_id %activeWinID%
+	}
+	
+	activated := ( 0 != activeWinID )
+	
+	log( "activateSelectedBrowser() + " SelectedBrowser ", " activeWinID " -> " activated )
+	
+	return activated
+}
+
+
+exitOpera()
+{
+	Send ^+x
+}
+
+
+closeSelectedBrowser()
+{
+	global SelectedBrowser
+	
+	log( "closeSelectedBrowser() + " SelectedBrowser )
+	
+	activated := activateSelectedBrowser()
+
+	if ( "Opera" == SelectedBrowser )
+	{		
+		if ( activated )
+		{
+			exitOpera()
+		}
+	}
+	
+	if ( activated )
+	{
+		closeBrowserWindow()
 	}
 	else
 	{
-		WinActivate
+		SoundBeep
 	}
 }
 
@@ -840,7 +1003,7 @@ youTubeSearch()
 playYouTube()
 {
     ; Click needs coordinates (mouse move).
-    clickWinCentre()
+    clickWindowCentre()
 }
 
 
@@ -902,6 +1065,8 @@ toggleFullScreenYouTube( embed = true, launched = true, fullScreen = -1 )
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) && checkFullScreen( fullScreen ) )
     {
+		log( "toggleFullScreenYouTube( " embed ", " launched ", " fullScreen " )" )
+		
         if ( embed || embed == "Embed" )
         {
             toggleFullScreenEmbedYouTube()
@@ -933,7 +1098,7 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     
     if ( 0 != youTubeIdPos )
     {
-        youTubeIdPos := youTubeIdPos + EmbedYouTubeURLSize
+        youTubeIdPos := youTubeIdPos . EmbedYouTubeURLSize
     }
     else
     {
@@ -941,7 +1106,7 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
         
         if ( 0 != youTubeIdPos )
         {
-            youTubeIdPos := youTubeIdPos + NormalYouTubeURLSize
+            youTubeIdPos := youTubeIdPos . NormalYouTubeURLSize
         }
         else
         {
@@ -986,7 +1151,7 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
 		SoundBeep
         return false
     }
-    
+   
     if ( youTubeURLOrId == "" )
     {
         youTubeURLOrId := getClipBoard()
@@ -996,8 +1161,10 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
             return false
         }
     }
-    
+   
     youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay, embed )
+ 	
+	log( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
     
     ; MsgBox %youTubeURL%
 
@@ -1007,17 +1174,17 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
 	; Not sure if this is working, hence the delay.
     if ( winTitle == "" )
     {
-        WinWait - YouTube,,8
+        WinWait, - YouTube,,8
     }
     else
     {
-        WinWait %winTitle%,,8
+        WinWait, %winTitle%,,8
     }
     
 	; A delay is required otherwise the activate doesn't work and the store and project don't work.
     Sleep 1800
     
-    activateSelectedBrowser()    
+    ; activateSelectedBrowser()    
     storeLaunched( "YouTube", embed )
     ; focusInternetExplorer() ; Doesn't work.
     ; Clicks to play or pause.
@@ -1032,6 +1199,7 @@ projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = 
 {
     if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
     {
+		; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
         winNext()
         toggleFullScreenYouTube( embed, true, 1 )
     }
@@ -1167,7 +1335,7 @@ showStoredLaunchCommands()
     global launchMap
     keyList := ""
     
-    ; altMsgBox( "Entries", "Number of entries: " . launchMap.Count() )
+    ; altMsgBox( "Entries", "Number of entries: " launchMap.Count() )
     
     For key, value in launchMap
     {
@@ -1229,10 +1397,13 @@ test( "Z:\Sunday Services\C Anderson.MOV" )
 return
 
 ;; Reload the AutoHotKey script.
-#r::Reload
+#r::reloadAndReset()
 
 ;; Reset stored data.
 ^+r::reset()
+
+;; Close selected browser.
+^!d::debugState()
 
 ;; Clear the clipboard.
 +^c::clearClipBoard()
@@ -1249,6 +1420,9 @@ return
 ;; End project.
 ; Win-q has is caught by some other application.
 !q::endLaunched()
+
+;; Close selected browser.
+^!q::closeSelectedBrowser()
 
 ;; Open YouTube search.
 #y::projectYouTube( "", 1 )
