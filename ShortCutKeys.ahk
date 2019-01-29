@@ -7,6 +7,7 @@ SetTitleMatchMode, 2
 WindowsPath := "C:\Windows"
 LogFile := "C:\tmp\shortcutkeys.log"
 Logging := false
+Debug := false
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 NormalYouTubeURLSize := StrLen( NormalYouTubeURL )
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
@@ -66,84 +67,7 @@ return
 
 
 TrayMenuHdlr_ShowHotKeyList:
-    SetBatchLines, -1
-    AutoTrim, off
-
-    hotKeyStartStr := ";; Hot keys setup."
-    lenHotKeyStartStr := StrLen( hotKeyStartStr )
-    hotkeyStartRead := 0
-    lastComment := ""
-    keyList := ""
-
-    Loop, Read, %A_ScriptDir%\%A_ScriptName%
-    {
-        line = %A_LoopReadLine%
-
-        if ( ! line or RegExMatch( line, "^\s*;(?!;)" ) )
-        {
-            continue
-        }
-
-        if ( ! hotkeyStartRead )
-        {
-            if ( hotKeyStartStr == SubStr( line, 1, lenHotKeyStartStr ) )
-            {
-                hotkeyStartRead := 1
-            }
-
-            continue
-        }
-
-        if ( InStr( line, ";;" ) )
-        {
-            StringTrimLeft, line, line, 3
-            lastComment := lastComment . " " . line
-
-            continue
-        }
-
-        if ( ! InStr( line, "::" ) )
-        {
-            continue
-        }
-
-        if ( SubStr( line, 1, 2 ) == "::" )
-        {
-            keys := StrSplit( line, ":" )
-            key := keys[3] . "<space>"
-
-            keyLine := Format( "{1:-16}{2}`n", key, lastComment )
-            keyList := keyList . keyLine
-
-            lastComment := ""
-        }
-        else if ( InStr( line, "::" ) )
-        {
-            keys := StrSplit( line, ":" )
-            key := keys[1]
-
-            StringReplace, key, key, #, Win-
-            StringReplace, key, key, !, Alt-
-            StringReplace, key, key, ^, Ctrl-
-            StringReplace, key, key, +, Shift-
-            StringReplace, key, key, `;,
-
-            ; key = %key%               !
-
-            ; StringLeft, key, key, 15
-            ; StringSplit, comment, line, `;
-            ; StringTrimLeft, comment, comment%comment0%, 0
-
-            keyLine := Format( "{1:-20}{2}`n", key, lastComment )
-            keyList := keyList . keyLine
-            ; keyList := keyList . key . "`t" . lastComment . "`n"
-
-            lastComment := ""
-        }
-    }
-
-    MsgBox, 0, Hot Keys List, %keyList%
-    keyList=
+	showHotKeyList()
 return
 
 TrayMenuHdlr_ShowOtherKeyList:
@@ -281,6 +205,109 @@ logActiveWindowID( label )
 }
 
 
+showHotKeyList()
+{
+	global Debug
+	
+    SetBatchLines, -1
+    AutoTrim, off
+
+    hotKeyStartStr := ";; Hot keys setup."
+    hotKeyEndStr := ";; Hot keys end."
+    lenHotKeyStartStr := StrLen( hotKeyStartStr )
+    lenHotKeyEndStr := StrLen( hotKeyEndStr )
+    hotkeyStartRead := 0
+    lastComment := ""
+    keyList := ""
+
+    Loop, Read, %A_ScriptDir%\%A_ScriptName%
+    {
+        line = %A_LoopReadLine%
+
+        if ( ! line or RegExMatch( line, "^\s*;(?!;)" ) )
+        {
+            continue
+        }
+
+        if ( ! hotkeyStartRead )
+        {
+            if ( hotKeyStartStr == SubStr( line, 1, lenHotKeyStartStr ) )
+            {
+                hotkeyStartRead := 1
+            }
+
+            continue
+        }
+		
+		if ( ! Debug and hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
+		{
+			break
+		}
+
+        if ( InStr( line, ";;" ) )
+        {
+            StringTrimLeft, line, line, 3
+            lastComment := lastComment . " " . line
+
+            continue
+        }
+
+        if ( ! InStr( line, "::" ) )
+        {
+            continue
+        }
+
+        if ( SubStr( line, 1, 2 ) == "::" )
+        {
+            keys := StrSplit( line, ":" )
+            key := keys[3] . "<space>"
+
+            keyLine := Format( "{1:-16}{2}`n", key, lastComment )
+            keyList := keyList . keyLine
+
+            lastComment := ""
+        }
+        else if ( SubStr( line, 1, 3 ) == ":*:" )
+        {
+            keys := StrSplit( line, ":" )
+            key := keys[3]
+
+            keyLine := Format( "{1:-16}{2}`n", key, lastComment )
+            keyList := keyList . keyLine
+
+            lastComment := ""
+        }
+        else ; if ( InStr( line, "::" ) )
+        {
+            keys := StrSplit( line, ":" )
+            key := keys[1]
+
+            StringReplace, key, key, #, Win-
+            StringReplace, key, key, !, Alt-
+            StringReplace, key, key, ^, Ctrl-
+            StringReplace, key, key, +, Shift-
+            StringReplace, key, key, `;,
+
+            ; key = %key%               !
+
+            ; StringLeft, key, key, 15
+            ; StringSplit, comment, line, `;
+            ; StringTrimLeft, comment, comment%comment0%, 0
+
+            keyLine := Format( "{1:-20}{2}`n", key, lastComment )
+            keyList := keyList . keyLine
+            ; keyList := keyList . key . "`t" . lastComment . "`n"
+
+            lastComment := ""
+        }
+    }
+
+    ; MsgBox, 0, Hot Keys List, %keyList%
+	altMsgBox( "Hot Keys List", keyList )
+    keyList=
+}
+
+
 resetLaunched()
 {
     global launchType
@@ -354,8 +381,8 @@ getClipBoard( useCurrent = false )
     {
         ; blockOnClipboardChange = 1
         clipboard =
-        Send ^c
-        ClipWait, 2
+        SendInput ^c
+        ClipWait, 1 ; 0.5 seconds.
         ; blockOnClipboardChange = 0
 
         if ErrorLevel
@@ -493,7 +520,7 @@ windowIDExists( winID )
 
 closeBrowserWindow()
 {
-    Send ^w
+    SendInput ^w
 }
 
 
@@ -502,7 +529,7 @@ paste()
 {
     tempClipboard = %clipboard%
     clipboard = %tempClipboard% 
-    Send ^v
+    SendInput ^v
 }
 
 
@@ -668,8 +695,13 @@ checkActiveWindow( launched = true )
 
     if ( ! winIsActive )
     {
-        SoundBeep
-        ; MsgBox %launchWin%
+		global Debug
+		
+		if ( Debug )
+		{
+			SoundBeep
+			; MsgBox %launchWin%
+		}
     }
 	
  	log( "checkActiveWindow( " launched " ) + " launchWinID ", " checkActiveWinID " -> " winIsActive )
@@ -680,13 +712,19 @@ checkActiveWindow( launched = true )
 
 checkSwitchToWindow( winTitle = "" )
 {
-    winID := windowOrLaunchedWindowID( winTitle )
+	global Debug
+	
+	winID := windowOrLaunchedWindowID( winTitle )
     
     if ( ! winID )
     {
 		log( "checkSwitchToWindow( " winTitle " ), no window to switch" )
 		
-        SoundBeep
+		if ( Debug )
+		{
+			SoundBeep
+		}
+
         return false
     }
     
@@ -697,7 +735,10 @@ checkSwitchToWindow( winTitle = "" )
     
     if ( ! winIsActive )
     {
-        SoundBeep
+		if ( Debug )
+		{
+			SoundBeep
+		}
     }
 	
  	log( "checkSwitchToWindow( " winTitle " ) + " winID " -> " winIsActive )
@@ -734,15 +775,15 @@ checkActiveWindowOrSwitchToLaunched( launched = true )
 }
 
 
-
-clickWindowCentre()
+getWindowCentre()
 {
+	global Debug
     global launchWin
     global launchWinID
 	
 	if ( ! launchWinID )
 	{
-		log( "clickWindowCentre(), missing launchWinID" )
+		log( "getWindowCentre(), missing launchWinID" )
 	}
     
 	Loop, 8
@@ -754,19 +795,60 @@ clickWindowCentre()
 			break
 		}
 		
-		log( "clickWindowCentre() + " launchWinID ", unable to get window position details" )
+		log( "getWindowCentre() + " launchWinID ", unable to get window position details" )
 		
 		Sleep 200
 		WinActivate ahk_id %launchWinID%
 	}
 
-    cx := x + ( width / 2 )
-    cy := y + ( height / 2 )
+    cx := x + ( width // 2 )
+    cy := y + ( height // 2 )
 	
-	log( "clickWindowCentre() + " launchWinID " + x=" x ", y=" y ", w=" width ", h=" height ", sw=" A_ScreenWidth ", sh=" A_ScreenHeight " -> cx=" cx ", cy=" cy )
-  
+	log( "getWindowCentre() + " launchWinID " + x=" x ", y=" y ", w=" width ", h=" height ", sw=" A_ScreenWidth ", sh=" A_ScreenHeight " -> cx=" cx ", cy=" cy )
+
+	windowCentre := { x : cx, y : cy }
+	
+	return windowCentre
+}
+
+
+middleClick( position, numClicks = 1, delay = 0 )
+{	
     CoordMode, Mouse, Screen
-    Click, %cx%, %cy%
+	MouseMove, position.x, position.y
+	Click, middle, position.x, position.y
+	
+	log( "middleClick( " position.x ", " position.y " )" )
+	
+	numClicks := numClicks - 1
+	
+	Loop, %numClicks%
+	{
+		Sleep %delay%
+		Click, middle, position.x, position.y
+		
+		log( "middleClick( " position.x ", " position.y " )" )
+	}
+}
+
+
+rightClick( position, numClicks = 1, delay = 0 )
+{	
+    CoordMode, Mouse, Screen
+	MouseMove, position.x, position.y
+	Click, right, position.x, position.y
+	
+	log( "rightClick( " position.x ", " position.y " )" )
+	
+	numClicks := numClicks - 1
+	
+	Loop, %numClicks%
+	{
+		Sleep %delay%
+		Click, right, position.x, position.y
+		
+		log( "rightClick( " position.x ", " position.y " )" )
+	}
 }
 
 
@@ -806,8 +888,12 @@ endLaunched()
     {
 		log( "endLaunched(), window closed" )
 		
-        SoundBeep
-        SoundBeep
+		if ( Debug )
+		{
+			SoundBeep
+			SoundBeep
+		}
+		
 		resetLaunched()
     }
 }
@@ -818,7 +904,7 @@ winNext( launched = true )
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
 		log( "winNext( " launched " ), send right" )
-        Send +#{Right}
+        SendInput +#{Right}
     }
 }
 
@@ -828,7 +914,7 @@ winPrevious( launched = true )
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
 		log( "winPrevious( " launched " ), send left" )
-        Send +#{Left}
+        SendInput +#{Left}
     }
 }
 
@@ -913,12 +999,13 @@ activateSelectedBrowser()
 
 exitOpera()
 {
-	Send ^+x
+	SendInput ^+x
 }
 
 
 closeSelectedBrowser()
 {
+	global Debug
 	global SelectedBrowser
 	
 	log( "closeSelectedBrowser() + " SelectedBrowser )
@@ -939,7 +1026,12 @@ closeSelectedBrowser()
 	}
 	else
 	{
-		SoundBeep
+		log( "closeSelectedBrowser() + " SelectedBrowser ", not closed" )
+		
+		if ( Debug )
+		{
+			SoundBeep
+		}
 	}
 }
 
@@ -954,6 +1046,32 @@ focusInternetExplorer()
     ControlGetFocus, focusControl
     
     MsgBox %focusControl%
+}
+
+
+runWithAvailableVideoPlayer( videoFile )
+{
+	videoLANx86 = "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"
+ 	videoLANx64 = "C:\Program Files\VideoLAN\VLC\vlc.exe"
+   
+    ; MsgBox, %videoFile%
+	if ( FileExist( videoLANx64 ) )
+	{
+		Run %videoLANx64% --started-from-file "%videoFile%"
+		WinWait VLC media player,,4
+	}
+	else if ( FileExist( videoLANx86 ) )
+	{
+		Run %videoLANx86% --started-from-file "%videoFile%"
+		WinWait VLC media player,,4
+	}
+	else
+	{
+		Run "%videoFile%"
+		; Assuming Windows Media Player.
+		WinWait ahk_class WMP Skin Host,,4
+		toggleFullScreenWindowsMediaPlayer()
+	}
 }
 
 
@@ -1000,34 +1118,37 @@ youTubeSearch()
 ; [0-9]: Jump to a point in the video. 0 jumps to the beginning of the video, 1 jumps to the point 10% into the video, 2 jumps to the point 20% into the video, and so forth.
 
 
-playYouTube()
+getBrowserFocus()
 {
     ; Click needs coordinates (mouse move).
-    clickWindowCentre()
+	windowCentre := getWindowCentre()
+	; Getting the focus in the browser YouTube player is tricky. Right click a few times and ESC.
+    middleClick( windowCentre, 4, 800 )
+	SendInput {Esc}
 }
 
 
 pauseOrPlayYouTubeOrVideoLAN()
 {
-    Send {Space}
+    SendInput {Space}
 }
 
 
 toggleMuteYouTube()
 {
-    Send m
+    SendInput m
 }
 
 
 slowDownYouTube()
 {
-    Send +<
+    SendInput +<
 }
 
 
 speedupYouTube()
 {
-    Send +>
+    SendInput +>
 }
 
 
@@ -1042,21 +1163,28 @@ quitVideo( modifier )
 
 quitVideoLAN()
 {
-    Send ^q
+    SendInput ^q
 }
 
 
 ; Full screen normal URL.
 toggleFullScreenNormalYouTube()
 {
-    Send f
+    SendInput f
 }
 
 
 ; Full screen embed URL.
 toggleFullScreenEmbedYouTube()
 {
-    Send {F11}
+    SendInput {F11}
+}
+
+
+; Full screen embed URL.
+toggleFullScreenWindowsMediaPlayer()
+{
+    SendInput {F11}
 }
 
 
@@ -1098,7 +1226,7 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     
     if ( 0 != youTubeIdPos )
     {
-        youTubeIdPos := youTubeIdPos . EmbedYouTubeURLSize
+        youTubeIdPos := youTubeIdPos + EmbedYouTubeURLSize
     }
     else
     {
@@ -1106,7 +1234,7 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
         
         if ( 0 != youTubeIdPos )
         {
-            youTubeIdPos := youTubeIdPos . NormalYouTubeURLSize
+            youTubeIdPos := youTubeIdPos + NormalYouTubeURLSize
         }
         else
         {
@@ -1128,13 +1256,14 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     }
     
     ; Do the opposite of autoplay because we must click to gain focus, which either plays or pauses.
+	; No just do two clicks in the player to focus+play/pause and re-pause/play.
     if ( autoPlay )
     {
-        youTubeURL := youTubeURL . EmbedYouTubeURLNoAutoPlay
+        youTubeURL := youTubeURL . EmbedYouTubeURLAutoPlay
     }
     else
     {
-        youTubeURL := youTubeURL . EmbedYouTubeURLAutoPlay
+        youTubeURL := youTubeURL . EmbedYouTubeURLNoAutoPlay
     }
     
     ; MsgBox %youTubeURL%
@@ -1148,7 +1277,15 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
 {
     if ( isLaunched() )
     {
-		SoundBeep
+		global Debug
+		
+		log( "launchYouTube(), already launched" )
+		
+		if ( Debug )
+		{
+			SoundBeep
+		}
+
         return false
     }
    
@@ -1171,24 +1308,22 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     runWithSelectedBrowser( youTubeURL )
     ; activateSelectedBrowser()
     
-	; Not sure if this is working, hence the delay.
     if ( winTitle == "" )
     {
-        WinWait, - YouTube,,8
+        WinWait, YouTube,,4
     }
     else
     {
-        WinWait, %winTitle%,,8
+        WinWait, %winTitle%,,4
     }
     
-	; A delay is required otherwise the activate doesn't work and the store and project don't work.
+	; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
     Sleep 1800
     
     ; activateSelectedBrowser()    
     storeLaunched( "YouTube", embed )
     ; focusInternetExplorer() ; Doesn't work.
-    ; Clicks to play or pause.
-    playYouTube()
+    getBrowserFocus()
     
     return true
 }
@@ -1210,27 +1345,36 @@ projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = 
 projectActiveWindowYouTube()
 {
     ; Full screen, pause, send to other display.
-    Send f
-    Send {Space}
-    Send +#{Right}
+    SendInput f
+    SendInput {Space}
+    SendInput +#{Right}
 }
 
 
 getHoveredYouTubeURL()
 {
-    Send {RButton}
-    Sleep 200
-    Send a
-    Sleep 200
-    Send {Enter}
-    Sleep 200
-    
+	;SetKeyDelay, 400
+    SendInput {Click right}
+	Sleep 200
+	SendInput a
+	Sleep 200
+	SendInput {Enter}
+  	;SetKeyDelay, -1
+  
     youTubeURL := getClipBoard()
     ; MsgBox %youTubeURL%
     
     return youTubeURL
 }
 
+
+getBrowserStatusBar()
+{
+    StatusBarGetText, youTubeURL
+    MsgBox %youTubeURL%
+    
+    return youTubeURL
+}
 
 ;; Launch youtube clip hovered over.
 projectHoveredYouTube()
@@ -1241,12 +1385,20 @@ projectHoveredYouTube()
 
 
 ;; Launch YouTube clip full screen on projected displays.
-launchVideoLAN( videoFile = "", autoPlay = false )
+launchVideo( videoFile = "", autoPlay = false )
 {
     if ( isLaunched() )
     {
-		SoundBeep
-        return
+		global Debug
+		
+		log( "launchVideo(), already launched" )
+	
+		if ( Debug )
+		{
+			SoundBeep
+		}
+		
+        return false
     }
     
     if ( videoFile == "" )
@@ -1257,29 +1409,26 @@ launchVideoLAN( videoFile = "", autoPlay = false )
     
     if ( videoFile == "" )
     {
-        return
+        return false
     }
     
-    storeLaunched( "Video", "VideoLAN" )
-    
-    ; MsgBox, %videoFile%
-    Run "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe" --started-from-file "%videoFile%"
-    ; WinWait ahk_class WMP Skin Host,,8
-    ; Send {F11}
-    WinWait VLC media player,,8
-    
+	runWithAvailableVideoPlayer( videoFile )
+	storeLaunched( "Video", "VideoLAN" )
+
     if ( ! autoPlay )
     {
         pauseOrPlayYouTubeOrVideoLAN()
     }
+	
+	return true
 }
 
 
 ;; Launch YouTube clip full screen on projected displays.
-projectVideoLAN( videoFile = "", autoPlay = false )
+projectVideo( videoFile = "", autoPlay = false )
 {
-    launchVideoLAN( videoFile, autoPlay )
-    Send +#{Right}
+    launchVideo( videoFile, autoPlay )
+    SendInput +#{Right}
 }
 
 
@@ -1291,9 +1440,10 @@ storeLaunchCommand( key )
     ; This also gets selected file.
     launchCommand := getClipBoard()
     
-    if ( launchCommand == "" and 0 != WinActive( "- YouTube" ) )
+    if ( launchCommand == "" and WinActive( "YouTube" ) )
     {
         launchCommand := getHoveredYouTubeURL()
+        ; launchCommand := getBrowserStatusBar()
         clearClipBoard()
     }
 
@@ -1321,11 +1471,11 @@ launchStoredCommand( key )
 
     if ( InStr( launchCommand, "youtube" ) )
     {
-        projectYouTube( launchCommand, 1 )
+        projectYouTube( launchCommand, true )
     }
     else
     {
-        projectVideoLAN( launchCommand, 1 )
+        projectVideo( launchCommand, true )
     }
 }
 
@@ -1386,24 +1536,11 @@ test( str )
 ;; Open Windows hot key help page.
 #h::Run "https://support.microsoft.com/en-gb/help/12445/windows-keyboard-shortcuts"
 
-;; Test string to say "Hello!".
-::hlo::
-MsgBox, Hello!
-return
-
-;; Call test function.
-#t::
-test( "Z:\Sunday Services\C Anderson.MOV" )
-return
-
 ;; Reload the AutoHotKey script.
 #r::reloadAndReset()
 
 ;; Reset stored data.
 ^+r::reset()
-
-;; Close selected browser.
-^!d::debugState()
 
 ;; Clear the clipboard.
 +^c::clearClipBoard()
@@ -1425,47 +1562,48 @@ return
 ^!q::closeSelectedBrowser()
 
 ;; Open YouTube search.
-#y::projectYouTube( "", 1 )
+#y::projectYouTube( "", true ) ; Autoplay.
 
 ;; Project current YouTube clip at full screen.
 #p::projectActiveWindowYouTube()
 
-; Project hovered over YouTube clip at full screen.
+;; Project hovered over YouTube clip at full screen.
 ; Does work for some but not others.
 ^p::projectHoveredYouTube()
 
 ;; Show selected video file full screen on the projected display.
-#v::projectVideoLAN( "", 1 )
+#v::projectVideo( "", true ) ; Autoplay.
 
 ;; Show stored launch commands.
 !#v::showStoredLaunchCommands()
 
-;; Show example YouTube video full screen on the projected display (autoplay).
-^#v::projectYouTube( "LF3Zr3D2UmA", 1 ) ; , "We Want To See Jesus Lifted High" )
 
-;; Store positional launch command 1 for later launch.
+; These can store selected video file, YouTube URL on the clipboard or hovered over YouTube page link.
+
+;; Store launch command 1 for later launch.
 ^+1::storeLaunchCommand( "p1" )
 
-;; Store positional launch command 2 for later launch.
+;; Store launch command 2 for later launch.
 ^+2::storeLaunchCommand( "p2" )
 
-;; Store positional launch command 3 for later launch.
+;; Store launch command 3 for later launch.
 ^+3::storeLaunchCommand( "p3" )
 
-;; Store positional launch command 4 for later launch.
+;; Store launch command 4 for later launch.
 ^+4::storeLaunchCommand( "p4" )
 
-;; Store positional launch command 5 for later launch.
+;; Store launch command 5 for later launch.
 ^+5::storeLaunchCommand( "p5" )
 
-;; Store positional launch command 6 for later launch.
+;; Store launch command 6 for later launch.
 ^+6::storeLaunchCommand( "p6" )
 
-;; Store positional launch command 7 for later launch.
+;; Store launch command 7 for later launch.
 ^+7::storeLaunchCommand( "p7" )
 
-;; Store positional launch command 8 for later launch.
+;; Store launch command 8 for later launch.
 ^+8::storeLaunchCommand( "p8" )
+
 
 ;; Invoke stored launch command 1.
 ^1::launchStoredCommand( "p1" )
@@ -1492,28 +1630,55 @@ return
 ^8::launchStoredCommand( "p8" )
 
 
-; Setup quick display of videos, YouTube clips etc. here.
+; Setup quick display of videos, YouTube clips etc. here, using hard coded hot keys or hot strings.
+
+
+; Examples.
+
+;; Show example YouTube video full screen on the projected display (autoplay).
+^#v::projectYouTube( "LF3Zr3D2UmA", true ) ; We Want To See Jesus Lifted High
 
 ;; Show example YouTube video full screen on the projected display (paused).
+; Type yt1 anywhere to launch this, but choose the string carefully!
 :*:yt1::
-projectYouTube( "LF3Zr3D2UmA", 0 ) ; , "We Want To See Jesus Lifted High" )
+projectYouTube( "H7NhaVE0MAw", false ) ; HillSong.
 return
 
 ;; Show example YouTube video full screen on the projected display (autoplay).
 :*:yt2::
-projectYouTube( "LF3Zr3D2UmA", 1 ) ; , "We Want To See Jesus Lifted High" )
+projectYouTube( "LqBpifDpNKc", true ) ; Oh Praise the Name (Anastasis).
 return
 
-;;
+;; Show example video file full screen on the projected display (autoplay).
+:*:vd1::
+projectVideo( "C:\Users\sounddesk\Documents\AutoHotKeys\TestData\P1100046.MOV", true )
+return
+
+;; Hot keys end.
+
+; Put other hidden hot keys here?
+
+;; Debug running state.
+^!d::debugState()
+
+;; Call test function.
+#t::
+test( "Z:\Sunday Services\C Anderson.MOV" )
+return
+
+;; Test string to say "Hello!".
+::hlo::
+MsgBox, Hello!
+return
 
 
 ;; Show video file full screen on the projected display.
 ; ::v1::
-; launchVideoLAN( "Z:\Sunday Services\C Anderson.MOV" )
+; launchVideo( "Z:\Sunday Services\C Anderson.MOV" )
 ; return
 ; 
 ; ::v2::
-; projectVideoLAN()
+; projectVideo()
 ; return
 
 ; Invoke stored launch command 1.
