@@ -1533,6 +1533,9 @@ test( str )
 ; !<key>         - Alt+<key>
 ; <key>&<key>     - Combine 2 keys into a custom key.
 
+; WARNING: For some reason AutoHotKey is disabling the F4 key
+; even though there is no hot key setup for F4.
+
 ;; Open Windows hot key help page.
 #h::Run "https://support.microsoft.com/en-gb/help/12445/windows-keyboard-shortcuts"
 
