@@ -6,7 +6,7 @@ SetTitleMatchMode, 2
 
 WindowsPath := "C:\Windows"
 LogFile := "C:\tmp\shortcutkeys.log"
-Logging := false
+Logging := true
 Debug := false
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 NormalYouTubeURLSize := StrLen( NormalYouTubeURL )
@@ -415,51 +415,6 @@ getClipBoard( useCurrent = false )
 ; return
 
 
-; -----------------------------------------------------------------------
-; Get the position and size of the desktop, taking the taskbar area into account.
-; This function probably doesn't work on secondary monitors.
-Win__GetDesktopPos(ByRef X, ByRef Y, ByRef W, ByRef H)
-{
-    ; Get dimensions of the system tray (taskbar)
-    WinGetPos, TrayX, TrayY, TrayW, TrayH, ahk_class Shell_TrayWnd
-
-    if (TrayW = A_ScreenWidth)
-    {
-        ; Horizontal Taskbar
-        X := 0
-        Y := TrayY ? 0 : TrayH
-        W := A_ScreenWidth
-        H := A_ScreenHeight - TrayH
-    }
-    else
-    {
-        ; Vertical Taskbar
-        X := TrayX ? 0 : TrayW
-        Y := 0
-        W := A_ScreenWidth - TrayW
-        H := A_ScreenHeight
-    }
-}
-
-
-; -----------------------------------------------------------------------
-; Mimic Windows-7 Win-Left Key Combination
-Win__HalfLeft()
-{
-    Win__GetDesktopPos(X, Y, W, H)
-    WinMove, A,, X, Y, W/2, H
-}
-
-
-; -----------------------------------------------------------------------
-; Mimic Windows-7 Win-Right Key Combination
-Win__HalfRight()
-{   
-    Win__GetDesktopPos(X, Y, W, H)
-    WinMove, A,, X + W/2, Y, W/2, H
-}
-
-
 altMsgBox( title, text )
 {
     text := Format( "{1:-80}", text )
@@ -565,8 +520,16 @@ isWindowFullScreen( winTitleOrID = "" )
     WinGetPos, winX, winY, winW, winH, %winTitleOrID%
 	
 	isFullScreen := false
+	screenWidth := A_ScreenWidth
+	screenHeight := A_ScreenHeight
+	; SysGet, screenWidth, 16
+	; SysGet, screenHeight, 17
+	; SysGet, Mon2, Monitor, 2
+	; MsgBox, Left: %Mon2Left% -- Top: %Mon2Top% -- Right: %Mon2Right% -- Bottom %Mon2Bottom%.
+	; screenWidth := Mon2Right - Mon2Left
+	; screenHeight := Mon2Right - Mon2Left
 
-    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == A_ScreenWidth && winH == A_ScreenHeight )
+    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == screenWidth && winH == screenHeight )
     {
         WinGetClass, winClass, %winTitleOrID%
         WinGet, winProcessName, ProcessName, %winTitleOrID%
@@ -579,7 +542,7 @@ isWindowFullScreen( winTitleOrID = "" )
         }
     }
 	
-	log( "isWindowFullScreen( " winTitleOrID " ) -> " isFullScreen )
+	log( "isWindowFullScreen( " winTitleOrID " ) + " screenWidth ", " screenHeight " -> " isFullScreen )
 	
 	return isFullScreen
 }
@@ -869,9 +832,11 @@ endLaunched()
             pauseOrPlayYouTubeOrVideoLAN()
             ; toggleMuteYouTube()
 			; Move off projection screen first before toggling full screen and closing window.
-            winPrevious()
 			toggleFullScreenYouTube( launchTypeModifier, true, 0 )
-            ; Sleep 400
+			; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
+            ; winPrevious()
+			Send +#{Left}
+            Sleep 1800
             closeBrowserWindow()
         }
         else if ( launchType == "Video" )
@@ -1535,6 +1500,7 @@ test( str )
 
 ; WARNING: For some reason AutoHotKey is disabling the F4 key
 ; even though there is no hot key setup for F4.
+; Solved. {Fn}{F4} is really Win-p. Hot key change to Alt-Win-p.
 
 ;; Open Windows hot key help page.
 #h::Run "https://support.microsoft.com/en-gb/help/12445/windows-keyboard-shortcuts"
@@ -1565,17 +1531,18 @@ test( str )
 ^!q::closeSelectedBrowser()
 
 ;; Open YouTube search.
-#y::projectYouTube( "", true ) ; Autoplay.
+#!y::projectYouTube( "", true ) ; Autoplay.
 
 ;; Project current YouTube clip at full screen.
-#p::projectActiveWindowYouTube()
+; Aha Win-p does the same as {Fn}{F4} and therefore must be mapped to Win-p.
+#!p::projectActiveWindowYouTube()
 
 ;; Project hovered over YouTube clip at full screen.
 ; Does work for some but not others.
-^p::projectHoveredYouTube()
+#^!p::projectHoveredYouTube()
 
 ;; Show selected video file full screen on the projected display.
-#v::projectVideo( "", true ) ; Autoplay.
+;#v::projectVideo( "", true ) ; Autoplay.
 
 ;; Show stored launch commands.
 !#v::showStoredLaunchCommands()
