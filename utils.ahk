@@ -267,16 +267,10 @@ isWindowFullScreen( winTitleOrID = "" )
     WinGetPos, winX, winY, winW, winH, %winTitleOrID%
 	
 	isFullScreen := false
-	screenWidth := A_ScreenWidth
-	screenHeight := A_ScreenHeight
-	; SysGet, screenWidth, 16
-	; SysGet, screenHeight, 17
-	; SysGet, Mon2, Monitor, 2
-	; MsgBox, Left: %Mon2Left% -- Top: %Mon2Top% -- Right: %Mon2Right% -- Bottom %Mon2Bottom%.
-	; screenWidth := Mon2Right - Mon2Left
-	; screenHeight := Mon2Right - Mon2Left
+	monitor := getWindowMonitor( winTitleOrID )
+	monitorArea := getMonitorArea( monitor )
 
-    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == screenWidth && winH == screenHeight )
+    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == monitorArea.width && winH == monitorArea.height )
     {
         WinGetClass, winClass, %winTitleOrID%
         WinGet, winProcessName, ProcessName, %winTitleOrID%
@@ -289,7 +283,7 @@ isWindowFullScreen( winTitleOrID = "" )
         }
     }
 	
-	log( "isWindowFullScreen( " winTitleOrID " ) + " screenWidth ", " screenHeight " -> " isFullScreen )
+	log( "isWindowFullScreen( " winTitleOrID " ) + " monitorArea.width ", " monitorArea.height " -> " isFullScreen )
 	
 	return isFullScreen
 }
@@ -324,26 +318,57 @@ checkFullScreen( fullScreen )
 }
 
 
+; Get the index of the monitor containing the specified x and y co-ordinates. 
+getMonitorAt( pos, default = 1 ) 
+{ 
+    SysGet, numMonitors, MonitorCount
+	
+	monitor := default
+	
+    ; Iterate through all monitors. 
+    Loop, %numMonitors% 
+    {
+		; Check if the window is on this monitor. 
+        SysGet, monitor, Monitor, %A_Index%
+		
+        if ( pos.x >= monitorLeft && pos.x <= monitorRight && pos.y >= monitorTop && pos.y <= monitorBottom )
+		{
+            monitor = A_Index 
+		}
+    } 
+
+    return monitor 
+}
+
+
 getWindowMonitor( winID )
 {
-	monitor := 0
+	windowCentre := getWindowCentre( winID )
+	monitor := getMonitorAt( windowCentre )
 	
 	return monitor
 }
 
 
-getMonitorRectangle( winID )
+getMonitorRectangle( monitor )
 {
-	ll := Point( 0, 0 )
-	ur = Point( 0, 0 )
+	SysGet, monitor, Monitor, monitor
+	
+	ll := Point( monitorLeft, monitorBottom )
+	ur = Point( monitorRight, monitorTop )
 	
 	return Rectangle( ll, ur )
 }
 
 
-getMonitorArea( winID )
+getMonitorArea( monitor )
 {	
-	return Area( A_ScreenWidth, A_ScreenHeight )
+	SysGet, monitor, Monitor, monitor
+	
+	width := monitorRight - monitorLeft
+	height = monitorBottom - monitorTop
+	
+	return Area( width, height )
 }
 
 
