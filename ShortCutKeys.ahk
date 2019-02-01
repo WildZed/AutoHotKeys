@@ -9,7 +9,7 @@ SetTitleMatchMode, 2
 ; Remember what was launched so that the correct end sequence can be sent.
 ; Counter for launch commands.
 ; Array to store launch commands (positional and sequential).
-LaunchData := {	type : "", typeModifier : "", windowTitle : "", windowID : 0, counter : 1, map : {} }
+LaunchData := { type : "", typeModifier : "", windowTitle : "", windowID : 0, counter : 1, map : {} }
 
 
 
@@ -42,7 +42,7 @@ return
 
 
 TrayMenuHdlr_ShowHotKeyList:
-	showHotKeyList()
+    showHotKeyList()
 return
 
 
@@ -72,7 +72,7 @@ return
 
 
 TrayMenuHdlr_ScriptEdit:
-	editFile( %A_ScriptName% )
+    editFile( %A_ScriptName% )
 return
 
 
@@ -87,12 +87,12 @@ return
 
 
 TrayMenuHdlr_WinSpyEXE:
-	windowSpy( true )
+    windowSpy( true )
 return
 
 
 TrayMenuHdlr_Help:
-	ahkHelp()
+    ahkHelp()
 return
 
 
@@ -131,8 +131,8 @@ return
 
 showHotKeyList()
 {
-	global Debug
-	
+    global Debug
+    
     SetBatchLines, -1
     AutoTrim, off
 
@@ -162,11 +162,11 @@ showHotKeyList()
 
             continue
         }
-		
-		if ( ! Debug and hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
-		{
-			break
-		}
+        
+        if ( ! Debug and hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
+        {
+            break
+        }
 
         if ( InStr( line, ";;" ) )
         {
@@ -227,7 +227,7 @@ showHotKeyList()
     }
 
     ; MsgBox, 0, Hot Keys List, %keyList%
-	altMsgBox( "Hot Keys List", keyList )
+    altMsgBox( "Hot Keys List", keyList )
     keyList=
 }
 
@@ -235,25 +235,25 @@ showHotKeyList()
 resetLaunchData()
 {
     resetLaunchWindow()
-	resetLaunchMap()
+    resetLaunchMap()
 }
 
 
 resetLaunchWindow()
 {
     global LaunchData
-	
-	LaunchData.type := ""
-	LaunchData.typeModifier := ""
-	LaunchData.windowTitle := ""
-	LaunchData.windowID := 0
+    
+    LaunchData.type := ""
+    LaunchData.typeModifier := ""
+    LaunchData.windowTitle := ""
+    LaunchData.windowID := 0
 }
 
 
 resetLaunchMap()
 {
     global LaunchData
-	
+    
     LaunchData.counter := 1
     LaunchData.map := {}
 }
@@ -268,25 +268,25 @@ reset()
 
 reloadAndReset()
 {
-	Reload
-	createLog()
+    Reload
+    createLog()
 }
 
 
 debugState()
 {
-	global Logging
-	global SelectedBrowser
-	global LaunchData
-	
-	debugText := 			"Logging = " Logging "`n"
-	debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
-	debugText := debugText  "launch type = " LaunchData.type "`n"
-	debugText := debugText  "launch type modifier = " LaunchData.typeModifier "`n"
-	debugText := debugText  "launch window title = " LaunchData.windowTitle "`n"
-	debugText := debugText  "launch window ID = " LaunchData.windowID "`n"
-	
-	MsgBox %debugText%
+    global Logging
+    global SelectedBrowser
+    global LaunchData
+    
+    debugText :=            "Logging = " Logging "`n"
+    debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
+    debugText := debugText  "launch type = " LaunchData.type "`n"
+    debugText := debugText  "launch type modifier = " LaunchData.typeModifier "`n"
+    debugText := debugText  "launch window title = " LaunchData.windowTitle "`n"
+    debugText := debugText  "launch window ID = " LaunchData.windowID "`n"
+    
+    MsgBox %debugText%
 }
 
 
@@ -294,13 +294,13 @@ isLaunched()
 {
     global LaunchData
     
-	; AutoHotKeys is such a pile of *#£$e that adding in this line makes this function work!
-	; The call to WinExist appears to make the subsequent calls to detect the window id work.
-	logActiveWindowID( "isLaunched()" )
-	launched := windowIDExists( LaunchData.windowID )
-	checkActiveWindow()
-	
-	log( "isLaunched() + " LaunchData.windowID " -> " launched )
+    ; AutoHotKeys is such a pile of *#£$e that adding in this line makes this function work!
+    ; The call to WinExist appears to make the subsequent calls to detect the window id work.
+    logActiveWindowID( "isLaunched()" )
+    launched := windowIDExists( LaunchData.windowID )
+    checkActiveWindow()
+    
+    log( "isLaunched() + " LaunchData.windowID " -> " launched )
 
     return launched
 }
@@ -313,42 +313,42 @@ storeLaunched( type, modifier = "" )
     
     LaunchData.type := type
     LaunchData.typeModifier := modifier
-	
-	Loop, 8
-	{
-		LaunchData.windowID := WinExist( "A" )
-		
-		if ( LaunchData.windowID )
-		{
-			WinGetActiveTitle, launchWin
-			; WinGetTitle realTitle, ahk_id %LaunchData.windowID%
-			; log( "storeLaunched(), id title " realTitle )
-			break
-		}
-		
-		log( "storeLaunched( " type ", " modifier " ), unable to get window id" )
-	}
-	
-	log( "storeLaunched( " type ", " modifier " ) -> " LaunchData.windowTitle ", " LaunchData.windowID )
-	
-	return LaunchData.windowID
+    
+    Loop, 8
+    {
+        LaunchData.windowID := WinExist( "A" )
+        
+        if ( LaunchData.windowID )
+        {
+            WinGetActiveTitle, launchWin
+            ; WinGetTitle realTitle, ahk_id %LaunchData.windowID%
+            ; log( "storeLaunched(), id title " realTitle )
+            break
+        }
+        
+        log( "storeLaunched( " type ", " modifier " ), unable to get window id" )
+    }
+    
+    log( "storeLaunched( " type ", " modifier " ) -> " LaunchData.windowTitle ", " LaunchData.windowID )
+    
+    return LaunchData.windowID
 }
 
 
 windowOrLaunchedWindowID( winTitle = "" )
-{	
+{   
     if ( winTitle )
     {
-		winID := WinExist( %winTitle% )
+        winID := WinExist( %winTitle% )
     }
-	else
-	{
+    else
+    {
         global LaunchData
     
         winID := LaunchData.windowID
-	}
-	
-   	log( "windowOrLaunchedWindowID( " winTitle " ) -> " winID )
+    }
+    
+    log( "windowOrLaunchedWindowID( " winTitle " ) -> " winID )
  
     return winID
 }
@@ -363,10 +363,10 @@ checkWindowClosed( winTitle = "" )
 
     if ( winID )
     {
-		winClosed := ! windowIDExists( launchWinID )
+        winClosed := ! windowIDExists( launchWinID )
     }
-	
-	log( "checkWindowClosed( " winTitle " ) + " winID " -> " winClosed )
+    
+    log( "checkWindowClosed( " winTitle " ) + " winID " -> " winClosed )
 
     return winClosed
 }
@@ -381,22 +381,22 @@ checkActiveWindow( launched = true )
     
     global LaunchData
     
-	winID := LaunchData.windowID
-	checkActiveWinID := WinActive( ahk_id %winID% )
-	winIsActive := ( 0 != checkActiveWinID )
+    winID := LaunchData.windowID
+    checkActiveWinID := WinActive( ahk_id %winID% )
+    winIsActive := ( 0 != checkActiveWinID )
 
     if ( ! winIsActive )
     {
-		global Debug
-		
-		if ( Debug )
-		{
-			SoundBeep
-			; MsgBox %LaunchData.windowTitle%
-		}
+        global Debug
+        
+        if ( Debug )
+        {
+            SoundBeep
+            ; MsgBox %LaunchData.windowTitle%
+        }
     }
-	
- 	log( "checkActiveWindow( " launched " ) + " LaunchData.windowID ", " checkActiveWinID " -> " winIsActive )
+    
+    log( "checkActiveWindow( " launched " ) + " LaunchData.windowID ", " checkActiveWinID " -> " winIsActive )
    
     return winIsActive
 }
@@ -404,18 +404,18 @@ checkActiveWindow( launched = true )
 
 checkSwitchToWindow( winTitle = "" )
 {
-	global Debug
-	
-	winID := windowOrLaunchedWindowID( winTitle )
+    global Debug
+    
+    winID := windowOrLaunchedWindowID( winTitle )
     
     if ( ! winID )
     {
-		log( "checkSwitchToWindow( " winTitle " ), no window to switch" )
-		
-		if ( Debug )
-		{
-			SoundBeep
-		}
+        log( "checkSwitchToWindow( " winTitle " ), no window to switch" )
+        
+        if ( Debug )
+        {
+            SoundBeep
+        }
 
         return false
     }
@@ -423,17 +423,17 @@ checkSwitchToWindow( winTitle = "" )
     WinActivate ahk_id %winID%
     WinWait ahk_id %winID%,,2
     
-	winIsActive := ( 0 != WinActive( ahk_id %winID% ) )
+    winIsActive := ( 0 != WinActive( ahk_id %winID% ) )
     
     if ( ! winIsActive )
     {
-		if ( Debug )
-		{
-			SoundBeep
-		}
+        if ( Debug )
+        {
+            SoundBeep
+        }
     }
-	
- 	log( "checkSwitchToWindow( " winTitle " ) + " winID " -> " winIsActive )
+    
+    log( "checkSwitchToWindow( " winTitle " ) + " winID " -> " winIsActive )
 
     return winIsActive
 }
@@ -444,11 +444,11 @@ waitForCloseWindow( winTitle = "" )
     winID := windowOrLaunchedWindowID( winTitle )
     
     if ( ! winID )
-    {		
+    {       
         return false
     }
 
-	WinWaitClose, ahk_id %winID%,, 8
+    WinWaitClose, ahk_id %winID%,, 8
 }
 
 
@@ -460,8 +460,8 @@ checkActiveWindowOrSwitchToLaunched( launched = true )
     {
         winOk := true
     }
-	
-   	log( "checkActiveWindowOrSwitchToLaunched( " launched " ) -> " winOk )
+    
+    log( "checkActiveWindowOrSwitchToLaunched( " launched " ) -> " winOk )
   
     return winOk
 }
@@ -470,47 +470,47 @@ checkActiveWindowOrSwitchToLaunched( launched = true )
 ;; Swap projected application to PC screen.
 endLaunched()
 {
-	logActiveWindowID( "endLaunched()" )
+    logActiveWindowID( "endLaunched()" )
 
     if ( checkSwitchToWindow() )
     {
-		global LaunchData
-		
-		log( "endLaunched() + " LaunchData.type " + " LaunchData.typeModifier ", switched to window, ending..." )
-		
+        global LaunchData
+        
+        log( "endLaunched() + " LaunchData.type " + " LaunchData.typeModifier ", switched to window, ending..." )
+        
         if ( LaunchData.type == "YouTube" )
         {
             pauseOrPlayYouTubeOrVideoLAN()
             ; toggleMuteYouTube()
-			; Move off projection screen first before toggling full screen and closing window.
-			toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
-			; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
+            ; Move off projection screen first before toggling full screen and closing window.
+            toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
+            ; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
             ; winPreviousLaunched()
-			Send +#{Left}
-            Sleep 1800
+            Send +#{Left}
+            ; Sleep 1800
             closeBrowserWindow()
         }
         else if ( LaunchData.type == "Video" )
         {
             quitVideo( LaunchData.typeModifier )
         }
-		
-		waitForCloseWindow()
+        
+        waitForCloseWindow()
     }
-	
-	logActiveWindowID( "endLaunched()" )
+    
+    logActiveWindowID( "endLaunched()" )
        
     if ( checkWindowClosed() )
     {
-		log( "endLaunched(), window closed" )
-		
-		if ( Debug )
-		{
-			SoundBeep
-			SoundBeep
-		}
-		
-		resetLaunchWindow()
+        log( "endLaunched(), window closed" )
+        
+        if ( Debug )
+        {
+            SoundBeep
+            SoundBeep
+        }
+        
+        resetLaunchWindow()
     }
 }
 
@@ -519,7 +519,7 @@ winNextLaunched( launched = true )
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
-		winNext()
+        winNext()
     }
 }
 
@@ -528,7 +528,7 @@ winPreviousLaunched( launched = true )
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
-		winPrevious()
+        winPrevious()
     }
 }
 
@@ -538,7 +538,7 @@ toggleFullScreenYouTubeLaunched( embed = true, launched = true, fullScreen = -1 
 {
     if ( checkActiveWindowOrSwitchToLaunched( launched ) && checkFullScreen( fullScreen ) )
     {
-		toggleFullScreenYouTube( embed = true, fullScreen = -1 )
+        toggleFullScreenYouTube( embed = true, fullScreen = -1 )
     }
 }
  
@@ -548,14 +548,14 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
 {
     if ( isLaunched() )
     {
-		global Debug
-		
-		log( "launchYouTube(), already launched" )
-		
-		if ( Debug )
-		{
-			SoundBeep
-		}
+        global Debug
+        
+        log( "launchYouTube(), already launched" )
+        
+        if ( Debug )
+        {
+            SoundBeep
+        }
 
         return false
     }
@@ -571,8 +571,8 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     }
    
     youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay, embed )
- 	
-	log( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
+    
+    log( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
     
     ; MsgBox %youTubeURL%
 
@@ -588,8 +588,9 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
         WinWait, %winTitle%,,4
     }
     
-	; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
-    Sleep 1800
+    ; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
+    ; Sleep 1800
+    ; Sleep 800
     
     ; activateSelectedBrowser()    
     winID := storeLaunched( "YouTube", embed )
@@ -605,7 +606,7 @@ projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = 
 {
     if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
     {
-		; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
+        ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
         winNextLaunched()
         toggleFullScreenYouTubeLaunched( embed, true, 1 )
     }
@@ -625,15 +626,15 @@ launchVideo( videoFile = "", autoPlay = false )
 {
     if ( isLaunched() )
     {
-		global Debug
-		
-		log( "launchVideo(), already launched" )
-	
-		if ( Debug )
-		{
-			SoundBeep
-		}
-		
+        global Debug
+        
+        log( "launchVideo(), already launched" )
+    
+        if ( Debug )
+        {
+            SoundBeep
+        }
+        
         return false
     }
     
@@ -648,15 +649,15 @@ launchVideo( videoFile = "", autoPlay = false )
         return false
     }
     
-	runWithAvailableVideoPlayer( videoFile )
-	storeLaunched( "Video", "VideoLAN" )
+    runWithAvailableVideoPlayer( videoFile )
+    storeLaunched( "Video", "VideoLAN" )
 
     if ( ! autoPlay )
     {
         pauseOrPlayYouTubeOrVideoLAN()
     }
-	
-	return true
+    
+    return true
 }
 
 

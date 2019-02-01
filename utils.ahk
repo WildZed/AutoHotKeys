@@ -114,7 +114,7 @@ logActiveWindowID( label )
 
 clearClipBoard()
 {
-    clipboard =
+    clipboard :=
 }
 
 
