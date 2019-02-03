@@ -1,15 +1,18 @@
 ﻿;; To allow re-run without dialog box.
 #SingleInstance force
+; #MaxThreadsPerHotkey 2
 
 DetectHiddenWindows, on
 SetTitleMatchMode, 2
 
 #Include utils.ahk
-
-; Remember what was launched so that the correct end sequence can be sent.
-; Counter for launch commands.
-; Array to store launch commands (positional and sequential).
-LaunchData := { type : "", typeModifier : "", windowTitle : "", windowID : 0, counter : 1, map : {} }
+#Include clipboard.ahk
+#Include window.ahk
+#Include monitor.ahk
+#Include browser.ahk
+#Include video.ahk
+#Include project.ahk
+#Include debug.ahk
 
 
 
@@ -25,6 +28,8 @@ TRAYMENU:
     Menu, Tray, DeleteAll 
     Menu, Tray, Add, %applicationname%, TrayMenuHdlr_ScriptEdit
     Menu, Tray, Add, Show &Debug Console, TrayMenuHdlr_DebugConsole
+    Menu, Tray, Add, &Show Debug View, showDebugView
+    Menu, Tray, Add, &Show Hot Key History, TrayMenuHdlr_ShowKeyHistory
     Menu, Tray, Add, &Help, TrayMenuHdlr_Help
     Menu, Tray, Add ; Creates a separator line.
     Menu, Tray, Add, &Window Spy, TrayMenuHdlr_WinSpy
@@ -32,6 +37,7 @@ TRAYMENU:
     Menu, Tray, Add, &Edit Script, TrayMenuHdlr_ScriptEdit
     Menu, Tray, Add, &List Hot Keys, TrayMenuHdlr_ShowHotKeyList
     Menu, Tray, Add, &List Other Keys, TrayMenuHdlr_ShowOtherKeyList
+    Menu, Tray, Add, &Launch Buttons, launchButtonDialog
     Menu, Tray, Add ; Creates a separator line.
     Menu, Tray, Add, &Suspend Hot Keys, TrayMenuHdlr_Suspend
     Menu, Tray, Add, &Pause Script, TrayMenuHdlr_Pause
@@ -72,12 +78,17 @@ return
 
 
 TrayMenuHdlr_ScriptEdit:
-    editFile( %A_ScriptName% )
+    editFile( A_ScriptName )
 return
 
 
 TrayMenuHdlr_DebugConsole:
     ListLines
+return
+
+
+TrayMenuHdlr_ShowKeyHistory:
+    KeyHistory
 return
 
 
@@ -129,136 +140,6 @@ TrayMenuHdlr_GuiClose:
 return
 
 
-showHotKeyList()
-{
-    global Debug
-    
-    SetBatchLines, -1
-    AutoTrim, off
-
-    hotKeyStartStr := ";; Hot keys setup."
-    hotKeyEndStr := ";; Hot keys end."
-    lenHotKeyStartStr := StrLen( hotKeyStartStr )
-    lenHotKeyEndStr := StrLen( hotKeyEndStr )
-    hotkeyStartRead := 0
-    lastComment := ""
-    keyList := ""
-
-    Loop, Read, %A_ScriptDir%\%A_ScriptName%
-    {
-        line = %A_LoopReadLine%
-
-        if ( ! line or RegExMatch( line, "^\s*;(?!;)" ) )
-        {
-            continue
-        }
-
-        if ( ! hotkeyStartRead )
-        {
-            if ( hotKeyStartStr == SubStr( line, 1, lenHotKeyStartStr ) )
-            {
-                hotkeyStartRead := 1
-            }
-
-            continue
-        }
-        
-        if ( ! Debug and hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
-        {
-            break
-        }
-
-        if ( InStr( line, ";;" ) )
-        {
-            StringTrimLeft, line, line, 3
-            lastComment := lastComment . " " . line
-
-            continue
-        }
-
-        if ( ! InStr( line, "::" ) )
-        {
-            continue
-        }
-
-        if ( SubStr( line, 1, 2 ) == "::" )
-        {
-            keys := StrSplit( line, ":" )
-            key := keys[3] . "<space>"
-
-            keyLine := Format( "{1:-16}{2}`n", key, lastComment )
-            keyList := keyList . keyLine
-
-            lastComment := ""
-        }
-        else if ( SubStr( line, 1, 3 ) == ":*:" )
-        {
-            keys := StrSplit( line, ":" )
-            key := keys[3]
-
-            keyLine := Format( "{1:-16}{2}`n", key, lastComment )
-            keyList := keyList . keyLine
-
-            lastComment := ""
-        }
-        else ; if ( InStr( line, "::" ) )
-        {
-            keys := StrSplit( line, ":" )
-            key := keys[1]
-
-            StringReplace, key, key, #, Win-
-            StringReplace, key, key, !, Alt-
-            StringReplace, key, key, ^, Ctrl-
-            StringReplace, key, key, +, Shift-
-            StringReplace, key, key, `;,
-
-            ; key = %key%               !
-
-            ; StringLeft, key, key, 15
-            ; StringSplit, comment, line, `;
-            ; StringTrimLeft, comment, comment%comment0%, 0
-
-            keyLine := Format( "{1:-20}{2}`n", key, lastComment )
-            keyList := keyList . keyLine
-            ; keyList := keyList . key . "`t" . lastComment . "`n"
-
-            lastComment := ""
-        }
-    }
-
-    ; MsgBox, 0, Hot Keys List, %keyList%
-    altMsgBox( "Hot Keys List", keyList )
-    keyList=
-}
-
-
-resetLaunchData()
-{
-    resetLaunchWindow()
-    resetLaunchMap()
-}
-
-
-resetLaunchWindow()
-{
-    global LaunchData
-    
-    LaunchData.type := ""
-    LaunchData.typeModifier := ""
-    LaunchData.windowTitle := ""
-    LaunchData.windowID := 0
-}
-
-
-resetLaunchMap()
-{
-    global LaunchData
-    
-    LaunchData.counter := 1
-    LaunchData.map := {}
-}
-
-
 reset()
 {
     clearClipBoard()
@@ -270,494 +151,6 @@ reloadAndReset()
 {
     Reload
     createLog()
-}
-
-
-debugState()
-{
-    global Logging
-    global SelectedBrowser
-    global LaunchData
-    
-    debugText :=            "Logging = " Logging "`n"
-    debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
-    debugText := debugText  "launch type = " LaunchData.type "`n"
-    debugText := debugText  "launch type modifier = " LaunchData.typeModifier "`n"
-    debugText := debugText  "launch window title = " LaunchData.windowTitle "`n"
-    debugText := debugText  "launch window ID = " LaunchData.windowID "`n"
-    
-    MsgBox %debugText%
-}
-
-
-isLaunched()
-{
-    global LaunchData
-    
-    ; AutoHotKeys is such a pile of *#£$e that adding in this line makes this function work!
-    ; The call to WinExist appears to make the subsequent calls to detect the window id work.
-    logActiveWindowID( "isLaunched()" )
-    launched := windowIDExists( LaunchData.windowID )
-    checkActiveWindow()
-    
-    log( "isLaunched() + " LaunchData.windowID " -> " launched )
-
-    return launched
-}
-
-
-;; Store the launched window details.
-storeLaunched( type, modifier = "" )
-{    
-    global LaunchData
-    
-    LaunchData.type := type
-    LaunchData.typeModifier := modifier
-    
-    Loop, 8
-    {
-        LaunchData.windowID := WinExist( "A" )
-        
-        if ( LaunchData.windowID )
-        {
-            WinGetActiveTitle, launchWin
-            ; WinGetTitle realTitle, ahk_id %LaunchData.windowID%
-            ; log( "storeLaunched(), id title " realTitle )
-            break
-        }
-        
-        log( "storeLaunched( " type ", " modifier " ), unable to get window id" )
-    }
-    
-    log( "storeLaunched( " type ", " modifier " ) -> " LaunchData.windowTitle ", " LaunchData.windowID )
-    
-    return LaunchData.windowID
-}
-
-
-windowOrLaunchedWindowID( winTitle = "" )
-{   
-    if ( winTitle )
-    {
-        winID := WinExist( %winTitle% )
-    }
-    else
-    {
-        global LaunchData
-    
-        winID := LaunchData.windowID
-    }
-    
-    log( "windowOrLaunchedWindowID( " winTitle " ) -> " winID )
- 
-    return winID
-}
-
-
-checkWindowClosed( winTitle = "" )
-{
-    winID := windowOrLaunchedWindowID( winTitle )
-    
-    ; Assume true if no title.
-    winClosed := true
-
-    if ( winID )
-    {
-        winClosed := ! windowIDExists( launchWinID )
-    }
-    
-    log( "checkWindowClosed( " winTitle " ) + " winID " -> " winClosed )
-
-    return winClosed
-}
-
-
-checkActiveWindow( launched = true )
-{
-    if ( ! launched )
-    {
-        return true
-    }
-    
-    global LaunchData
-    
-    winID := LaunchData.windowID
-    checkActiveWinID := WinActive( ahk_id %winID% )
-    winIsActive := ( 0 != checkActiveWinID )
-
-    if ( ! winIsActive )
-    {
-        global Debug
-        
-        if ( Debug )
-        {
-            SoundBeep
-            ; MsgBox %LaunchData.windowTitle%
-        }
-    }
-    
-    log( "checkActiveWindow( " launched " ) + " LaunchData.windowID ", " checkActiveWinID " -> " winIsActive )
-   
-    return winIsActive
-}
-
-
-checkSwitchToWindow( winTitle = "" )
-{
-    global Debug
-    
-    winID := windowOrLaunchedWindowID( winTitle )
-    
-    if ( ! winID )
-    {
-        log( "checkSwitchToWindow( " winTitle " ), no window to switch" )
-        
-        if ( Debug )
-        {
-            SoundBeep
-        }
-
-        return false
-    }
-    
-    WinActivate ahk_id %winID%
-    WinWait ahk_id %winID%,,2
-    
-    winIsActive := ( 0 != WinActive( ahk_id %winID% ) )
-    
-    if ( ! winIsActive )
-    {
-        if ( Debug )
-        {
-            SoundBeep
-        }
-    }
-    
-    log( "checkSwitchToWindow( " winTitle " ) + " winID " -> " winIsActive )
-
-    return winIsActive
-}
-
-
-waitForCloseWindow( winTitle = "" )
-{
-    winID := windowOrLaunchedWindowID( winTitle )
-    
-    if ( ! winID )
-    {       
-        return false
-    }
-
-    WinWaitClose, ahk_id %winID%,, 8
-}
-
-
-checkActiveWindowOrSwitchToLaunched( launched = true )
-{
-    winOk := false
-    
-    if ( checkActiveWindow( launched ) || checkSwitchToWindow() )
-    {
-        winOk := true
-    }
-    
-    log( "checkActiveWindowOrSwitchToLaunched( " launched " ) -> " winOk )
-  
-    return winOk
-}
-
-
-;; Swap projected application to PC screen.
-endLaunched()
-{
-    logActiveWindowID( "endLaunched()" )
-
-    if ( checkSwitchToWindow() )
-    {
-        global LaunchData
-        
-        log( "endLaunched() + " LaunchData.type " + " LaunchData.typeModifier ", switched to window, ending..." )
-        
-        if ( LaunchData.type == "YouTube" )
-        {
-            pauseOrPlayYouTubeOrVideoLAN()
-            ; toggleMuteYouTube()
-            ; Move off projection screen first before toggling full screen and closing window.
-            toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
-            ; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
-            ; winPreviousLaunched()
-            Send +#{Left}
-            ; Sleep 1800
-            closeBrowserWindow()
-        }
-        else if ( LaunchData.type == "Video" )
-        {
-            quitVideo( LaunchData.typeModifier )
-        }
-        
-        waitForCloseWindow()
-    }
-    
-    logActiveWindowID( "endLaunched()" )
-       
-    if ( checkWindowClosed() )
-    {
-        log( "endLaunched(), window closed" )
-        
-        if ( Debug )
-        {
-            SoundBeep
-            SoundBeep
-        }
-        
-        resetLaunchWindow()
-    }
-}
-
-
-winNextLaunched( launched = true )
-{
-    if ( checkActiveWindowOrSwitchToLaunched( launched ) )
-    {
-        winNext()
-    }
-}
-
-
-winPreviousLaunched( launched = true )
-{
-    if ( checkActiveWindowOrSwitchToLaunched( launched ) )
-    {
-        winPrevious()
-    }
-}
-
-
-; Full screen embed URL.
-toggleFullScreenYouTubeLaunched( embed = true, launched = true, fullScreen = -1 )
-{
-    if ( checkActiveWindowOrSwitchToLaunched( launched ) && checkFullScreen( fullScreen ) )
-    {
-        toggleFullScreenYouTube( embed = true, fullScreen = -1 )
-    }
-}
- 
-
-;; Launch YouTube clip full screen on projected displays.
-launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "" )
-{
-    if ( isLaunched() )
-    {
-        global Debug
-        
-        log( "launchYouTube(), already launched" )
-        
-        if ( Debug )
-        {
-            SoundBeep
-        }
-
-        return false
-    }
-   
-    if ( youTubeURLOrId == "" )
-    {
-        youTubeURLOrId := getClipBoard()
-    
-        if ( youTubeURLOrId == "" )
-        {
-            return false
-        }
-    }
-   
-    youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay, embed )
-    
-    log( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
-    
-    ; MsgBox %youTubeURL%
-
-    runWithSelectedBrowser( youTubeURL )
-    ; activateSelectedBrowser()
-    
-    if ( winTitle == "" )
-    {
-        WinWait, YouTube,,4
-    }
-    else
-    {
-        WinWait, %winTitle%,,4
-    }
-    
-    ; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
-    ; Sleep 1800
-    ; Sleep 800
-    
-    ; activateSelectedBrowser()    
-    winID := storeLaunched( "YouTube", embed )
-    ; focusInternetExplorer() ; Doesn't work.
-    getBrowserFocus( winID )
-    
-    return true
-}
-
-
-;; Launch YouTube clip full screen on projected displays.
-projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = ""  )
-{
-    if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
-    {
-        ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
-        winNextLaunched()
-        toggleFullScreenYouTubeLaunched( embed, true, 1 )
-    }
-}
-
-
-;; Launch youtube clip hovered over.
-projectHoveredYouTube()
-{
-    youTubeURL := getHoveredYouTubeURL()
-    projectYouTube( youTubeURL )
-}
-
-
-;; Launch YouTube clip full screen on projected displays.
-launchVideo( videoFile = "", autoPlay = false )
-{
-    if ( isLaunched() )
-    {
-        global Debug
-        
-        log( "launchVideo(), already launched" )
-    
-        if ( Debug )
-        {
-            SoundBeep
-        }
-        
-        return false
-    }
-    
-    if ( videoFile == "" )
-    {
-        ; This also gets selected file.
-        videoFile := getClipBoard()
-    }
-    
-    if ( videoFile == "" )
-    {
-        return false
-    }
-    
-    runWithAvailableVideoPlayer( videoFile )
-    storeLaunched( "Video", "VideoLAN" )
-
-    if ( ! autoPlay )
-    {
-        pauseOrPlayYouTubeOrVideoLAN()
-    }
-    
-    return true
-}
-
-
-;; Launch YouTube clip full screen on projected displays.
-projectVideo( videoFile = "", autoPlay = false )
-{
-    launchVideo( videoFile, autoPlay )
-    SendInput +#{Right}
-}
-
-
-;; Store a context value when a key is pressed.
-storeLaunchCommand( key )
-{
-    global LaunchData
-    
-    ; This also gets selected file.
-    launchCommand := getClipBoard()
-    
-    if ( launchCommand == "" and WinActive( "YouTube" ) )
-    {
-        launchCommand := getHoveredYouTubeURL()
-        ; launchCommand := getBrowserStatusBar()
-        clearClipBoard()
-    }
-
-    if ( launchCommand != "" )
-    {
-        LaunchData.map[(key)] := launchCommand
-        launchCommand := LaunchData.map[(key)]
-        ; MsgBox Stored launch command "%launchCommand%" as "%key%".
-    }
-}
-
-
-launchStoredCommand( key )
-{
-    global LaunchData
-    
-    launchCommand := LaunchData.map[(key)]
-    
-    if ( launchCommand == "" )
-    {
-        return
-    }
-    
-    ; MsgBox Launching "%launchCommand%".
-
-    if ( InStr( launchCommand, "youtube" ) )
-    {
-        projectYouTube( launchCommand, true )
-    }
-    else
-    {
-        projectVideo( launchCommand, true )
-    }
-}
-
-
-showStoredLaunchCommands()
-{
-    global LaunchData
-    keyList := ""
-    
-    ; altMsgBox( "Entries", "Number of entries: " LaunchData.map.Count() )
-    
-    For key, value in LaunchData.map
-    {
-        ; keyVal := key . " " . value
-        ; altMsgBox( "Debug", keyVal )
-        keyLine := Format( "{1:-8}{2}`n", key, value )
-        keyList := keyList . keyLine
-    }
-    
-    if ( keyList != "" )
-    {
-        title := "Stored Videos"
-        altMsgBox( title, keyList )
-        ; MsgBox, , %title%, %keyList%
-    }
-}
-
-
-;; Test function.
-test( str )
-{
-    clip := getClipBoard()
-    
-    if ( str == clip )
-    {
-        MsgBox, "%str%"
-    }
-    else
-    {
-        MsgBox,
-            (
-                "%str%"
-                "%clip%"
-            )
-    }
 }
 
 
@@ -795,12 +188,17 @@ test( str )
 ;; Open YouTube search.
 #s::youTubeSearch()
 
+;; Close selected browser.
+^!q::closeSelectedBrowser()
+
+#!l::launchButtonDialog()
+
+;; Show stored launch commands.
+!#v::showStoredLaunchCommands()
+
 ;; End project.
 ; Win-q has is caught by some other application.
 !q::endLaunched()
-
-;; Close selected browser.
-^!q::closeSelectedBrowser()
 
 ;; Open YouTube search.
 #!y::projectYouTube( "", true ) ; Autoplay.
@@ -816,11 +214,17 @@ test( str )
 ;; Show selected video file full screen on the projected display.
 #v::projectVideo( "", true ) ; Autoplay.
 
-;; Show stored launch commands.
-!#v::showStoredLaunchCommands()
+;; Play/pause launched window by switching to window and back.
+#Space::pausePlayLaunched()
 
 
 ; These can store selected video file, YouTube URL on the clipboard or hovered over YouTube page link.
+
+;; Store launch command for later launch.
+^+s::storeLaunchCommand()
+
+;; Store launch command for later launch.
+^+a::storeLaunchCommand( "p" )
 
 ;; Store launch command 1 for later launch.
 ^+1::storeLaunchCommand( "p1" )
