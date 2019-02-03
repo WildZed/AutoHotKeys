@@ -90,11 +90,13 @@ lastActiveWindow()
 
 isActiveStoredWindow()
 {
+    global WindowContext
+    
     activeWinID := WinActive( "A" )
     
     activeIsStored := ( activeWinID == WindowContext.storedWindowID )
     
-    log( "isActiveStoredWindow() -> " activeIsStored )
+    log( "isActiveStoredWindow() + " activeWinID ", " WindowContext.storedWindowID " -> " activeIsStored )
     
     return activeIsStored
 }

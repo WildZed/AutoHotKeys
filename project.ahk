@@ -496,7 +496,7 @@ pausePlayLaunched()
     
     log( "pausePlayLaunched() + " LaunchData.type ", " LaunchData.typeModifier ", checking for pause/play..." )
     
-    if ( LaunchData.type == "YouTube" ) # || LaunchData.type == "Video" )
+    if ( LaunchData.type == "YouTube" || LaunchData.type == "Video" )
     {
         storeActiveWindow()
         
