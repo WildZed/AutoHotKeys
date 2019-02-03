@@ -101,7 +101,7 @@ checkLaunched( launched = true, default = false )
         
         if ( Debug )
         {
-            SoundBeep
+            debugBeep()
         }
     }
     
@@ -187,13 +187,7 @@ checkActiveWindow( launched = true )
 
     if ( ! winIsActive )
     {
-        global Debug
-        
-        if ( Debug )
-        {
-            SoundBeep
-            ; MsgBox %LaunchData.windowTitle%
-        }
+        debugBeep()
     }
     
     log( "checkActiveWindow( " launched " ) + " LaunchData.windowID ", " checkActiveWindowID " -> " winIsActive )
@@ -558,8 +552,7 @@ endLaunched()
         
         if ( Debug )
         {
-            SoundBeep
-            SoundBeep
+            debugBeep( 2 )
         }
         
         resetLaunchWindow()

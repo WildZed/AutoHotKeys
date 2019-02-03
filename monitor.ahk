@@ -81,3 +81,28 @@ previousMonitor()
 	log( "previousMonitor(), send left" )
 	SendInput +#{Left}
 }
+
+
+moveWindowToNextVirtualDesktop()
+{
+    ; WIN+TAB=Open the desktop view.
+    SendInput #{Tab}
+    Sleep 800
+    ; Sleep 2000
+    ; SHIFT+F10=context menu. M=move. Enter for the first desktop in the list.
+    SendInput +{F10}
+    Sleep 800
+    SendInput {Down}
+    ; Sleep 2000
+    SendInput {Down}
+    Sleep 200
+    SendInput {Right}
+    Sleep 800
+    SendInput {Right}
+    Sleep 800
+    SendInput {Enter}
+    Sleep 100
+    ; Sleep 2000
+    ; WIN+TAB=Close the desktop view.
+    SendInput #{Tab}
+}

@@ -185,11 +185,7 @@ closeSelectedBrowser()
 	else
 	{
 		log( "closeSelectedBrowser() + " SelectedBrowser ", not closed" )
-		
-		if ( Debug )
-		{
-			SoundBeep
-		}
+		debugBeep()
 	}
 }
 
@@ -258,13 +254,6 @@ toggleFullScreenNormalYouTube()
 
 ; Full screen embed URL.
 toggleFullScreenEmbedYouTube()
-{
-    SendInput {F11}
-}
-
-
-; Full screen embed URL.
-toggleFullScreenWindowsMediaPlayer()
 {
     SendInput {F11}
 }

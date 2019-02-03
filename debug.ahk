@@ -4,6 +4,7 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 Debug := true
+Beep := true
 LogFile := "C:\tmp\shortcutkeys.log"
 Logging := false
 
@@ -47,6 +48,20 @@ logActiveWindowID( label )
 	activeWinID := WinExist( "A" )
 	
 	log( label " logActiveWindowID() -> " activeWinID )
+}
+
+
+debugBeep( num = 1 )
+{
+    global Beep
+    
+    if ( Beep )
+    {
+        Loop, %num%
+        {
+            SoundBeep
+        }
+    }
 }
 
 

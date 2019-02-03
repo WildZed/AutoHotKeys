@@ -179,6 +179,12 @@ reloadAndReset()
 ;; Clear the clipboard.
 +^c::clearClipBoard()
 
+;; Move active window to next virtual desktop.
+^+!Right::moveWindowToNextVirtualDesktop()
+
+;; Move active window to next virtual desktop.
+^+!Left::moveWindowToNextVirtualDesktop()
+
 ;; Open Explorer window.
 #e::Run c:\windows\explorer.exe /n`, /e`, C:\
 

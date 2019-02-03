@@ -6,6 +6,13 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 
+; Full screen embed URL.
+toggleFullScreenWindowsMediaPlayer()
+{
+    SendInput {F11}
+}
+
+
 runWithAvailableVideoPlayer( videoFile )
 {
 	videoLANx86 = "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"

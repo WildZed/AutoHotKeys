@@ -215,11 +215,7 @@ checkSwitchToWindowID( windowID, wait = 2 )
     if ( ! windowID )
     {
         log( "checkSwitchToWindowID( " windowID " ), no window to switch" )
-        
-        if ( Debug )
-        {
-            SoundBeep
-        }
+        debugBeep()
 
         return false
     }
@@ -234,9 +230,9 @@ checkSwitchToWindowID( windowID, wait = 2 )
         {
             break
         }
-        else if ( Debug )
+        else
         {
-            SoundBeep
+            debugBeep()
         }
     }
     
