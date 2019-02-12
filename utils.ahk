@@ -42,9 +42,9 @@ Rectangle( cll, cur )
 }
 
 
-Area( cwidth, cheight )
+Area( ctl, cwidth, cheight )
 {
-	return { width : cwidth, height : cheight }
+	return { tl : ctl, width : cwidth, height : cheight }
 }
 
 
@@ -145,9 +145,16 @@ showHotKeyList()
             continue
         }
         
-        if ( ! Debug and hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
+        if ( hotKeyEndStr == SubStr( line, 1, lenHotKeyEndStr ) )
         {
-            break
+			if ( Debug )
+			{
+				continue
+			}
+			else
+			{
+				break
+			}
         }
 
         if ( InStr( line, ";;" ) )

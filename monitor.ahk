@@ -3,6 +3,9 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
+MainMonitor := 1
+ProjectionMonitor := 2
+
 
 
 
@@ -32,8 +35,13 @@ getMonitorAt( pos, default = 1 )
 }
 
 
-getWindowIDMonitor( windowID )
+getWindowIDMonitor( windowID = 0 )
 {
+	if ( ! windowID )
+	{
+        windowID := WinExist( "A" )
+	}
+	
 	windowCentre := getWindowIDCentre( windowID )
 	monitor := getMonitorAt( windowCentre )
     
@@ -45,7 +53,7 @@ getWindowIDMonitor( windowID )
 
 getMonitorRectangle( monitor )
 {
-	SysGet, monitor, Monitor, monitor
+	SysGet, monitor, Monitor, %monitor%
 	
 	ll := Point( monitorLeft, monitorBottom )
 	ur = Point( monitorRight, monitorTop )
@@ -58,14 +66,15 @@ getMonitorRectangle( monitor )
 
 getMonitorArea( monitor )
 {	
-	SysGet, monitor, Monitor, monitor
+	SysGet, monitor, Monitor, %monitor%
 	
+	tl := Point( monitorLeft, monitorTop )
 	width := monitorRight - monitorLeft
 	height := monitorBottom - monitorTop
     
-    log( "getMonitorArea( " monitor " ) -> " width ", " height )
+    log( "getMonitorArea( " monitor " ) -> ( " tl.x ", " tl.y " ), " width ", " height )
 	
-	return Area( width, height )
+	return Area( tl, width, height )
 }
 
 
@@ -80,6 +89,63 @@ previousMonitor()
 {
 	log( "previousMonitor(), send left" )
 	SendInput +#{Left}
+}
+
+
+switchToMonitor( monitor )
+{
+	currentWindowMonitor := getWindowIDMonitor()
+	activeWindowMonitor := currentWindowMonitor
+	
+	Loop, 8
+	{
+		if ( activeWindowMonitor == monitor )
+		{
+			break
+		}
+		
+		nextMonitor()
+		Sleep 200
+		activeWindowMonitor := getWindowIDMonitor()
+		
+		if ( activeWindowMonitor == curentWindowMonitor )
+		{
+			break
+		}
+	}
+}
+
+
+switchToMainMonitor()
+{
+	global MainMonitor
+	
+	switchToMonitor( MainMonitor )
+}
+
+
+switchToProjectionMonitor()
+{
+	global ProjectionMonitor
+	
+	switchToMonitor( ProjectionMonitor )
+}
+
+
+toggleProjectionMonitor()
+{
+	global MainMonitor
+	
+	currentWindowMonitor := getWindowIDMonitor()
+	
+	if ( currentWindowMonitor == MainMonitor )
+	{
+		switchToProjectionMonitor()
+	}
+	else
+	{
+		switchToMainMonitor()
+	}
 }
 
 

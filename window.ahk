@@ -14,10 +14,14 @@ isWindowIDFullScreen( windowID = "" )
     ; Code from NiftyWindows source (with only slight modification).
 
     ; Use WinExist of another means to get the Unique ID (HWND) of the desired window.
-
+	if ( windowID == "" )
+	{
+        windowID := WinExist( "A" )
+	}
+	
     if ( ! windowID )
 	{
-        return false
+		return
 	}
 
     WinGet, winMinMax, MinMax, ahk_id %windowID%
@@ -26,8 +30,12 @@ isWindowIDFullScreen( windowID = "" )
 	isFullScreen := false
 	monitor := getWindowIDMonitor( windowID )
 	monitorArea := getMonitorArea( monitor )
+	monitorTopLeft := monitorArea.tl
 
-    if ( winMinMax == 0 && winX == 0 && winY == 0 && winW == monitorArea.width && winH == monitorArea.height )
+	; Can't tell the difference between full screen and maximised if the x and y are 0 and the width and height
+	; match the monitor. Although typically a non-full screen window that is maximised has -ive x and y.
+	; winMinMax == 0 && 
+    if ( winX == monitorTopLeft.x && winY == monitorTopLeft.y && winW == monitorArea.width && winH == monitorArea.height )
     {
         WinGetClass, winClass, ahk_id %windowID%
         WinGet, winProcessName, ProcessName, ahk_id %windowID%
@@ -40,7 +48,7 @@ isWindowIDFullScreen( windowID = "" )
         }
     }
 	
-	log( "isWindowIDFullScreen( " windowID " ) + " monitorArea.width ", " monitorArea.height " -> " isFullScreen )
+	log( "isWindowIDFullScreen( " windowID " ) + ( " monitorTopLeft.x ", " monitorTopLeft.y " ), " monitorArea.width ", " monitorArea.height " + " winMinMax ", ( " winX ", " winY " ), " winW ", " winH " -> " isFullScreen )
 	
 	return isFullScreen
 }

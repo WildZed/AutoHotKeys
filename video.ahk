@@ -15,25 +15,31 @@ toggleFullScreenWindowsMediaPlayer()
 
 runWithAvailableVideoPlayer( videoFile )
 {
-	videoLANx86 = "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"
- 	videoLANx64 = "C:\Program Files\VideoLAN\VLC\vlc.exe"
+ 	videoLANx64 := "C:\Program Files\VideoLAN\VLC\vlc.exe"
+	videoLANx86 := "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"
    
     ; MsgBox, %videoFile%
 	if ( FileExist( videoLANx64 ) )
 	{
+		log( "runWithAvailableVideoPlayer( " videoFile " ) -> " videoLANx64 )
 		Run %videoLANx64% --started-from-file "%videoFile%"
 		WinWait VLC media player,,4
+		WinWaitActive VLC media player,,4
 	}
 	else if ( FileExist( videoLANx86 ) )
 	{
+		log( "runWithAvailableVideoPlayer( " videoFile " ) -> " videoLANx86 )
 		Run %videoLANx86% --started-from-file "%videoFile%"
 		WinWait VLC media player,,4
+		WinWaitActive VLC media player,,4
 	}
 	else
 	{
+		log( "runWithAvailableVideoPlayer( " videoFile " ) -> default player" )
 		Run "%videoFile%"
 		; Assuming Windows Media Player.
 		WinWait ahk_class WMP Skin Host,,4
+		WinWaitActive ahk_class WMP Skin Host,,4
 		toggleFullScreenWindowsMediaPlayer()
 	}
 }

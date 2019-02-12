@@ -179,12 +179,6 @@ reloadAndReset()
 ;; Clear the clipboard.
 +^c::clearClipBoard()
 
-;; Move active window to next virtual desktop.
-^+!Right::moveWindowToNextVirtualDesktop()
-
-;; Move active window to next virtual desktop.
-^+!Left::moveWindowToNextVirtualDesktop()
-
 ;; Open Explorer window.
 #e::Run c:\windows\explorer.exe /n`, /e`, C:\
 
@@ -192,12 +186,22 @@ reloadAndReset()
 #g::googleSearch()
 
 ;; Open YouTube search.
-#s::youTubeSearch()
+#y::youTubeSearch()
 
 ;; Close selected browser.
 ^!q::closeSelectedBrowser()
 
+;; Show launch button dialog.
 #!l::launchButtonDialog()
+
+;; Play/pause launched window by switching to window and back.
+#Space::pausePlayLaunched()
+
+;; Toggle focus to launched window and back.
+#f::toggleFocusLaunchedWindow()
+
+;; Toggle active window to projection monitor and back.
+#s::toggleProjectionMonitorLaunched()
 
 ;; Show stored launch commands.
 !#v::showStoredLaunchCommands()
@@ -219,9 +223,6 @@ reloadAndReset()
 
 ;; Show selected video file full screen on the projected display.
 #v::projectVideo( "", true ) ; Autoplay.
-
-;; Play/pause launched window by switching to window and back.
-#Space::pausePlayLaunched()
 
 
 ; These can store selected video file, YouTube URL on the clipboard or hovered over YouTube page link.
@@ -306,7 +307,9 @@ return
 projectVideo( "C:\Users\sounddesk\Documents\AutoHotKeys\TestData\P1100046.MOV", true )
 return
 
+
 ;; Hot keys end.
+
 
 ; Put other hidden hot keys here?
 
@@ -314,14 +317,18 @@ return
 ^!d::debugState()
 
 ;; Call test function.
-#t::
-test( "Z:\Sunday Services\C Anderson.MOV" )
-return
+#t::test()
 
 ;; Test string to say "Hello!".
 ::hlo::
 MsgBox, Hello!
 return
+
+; Move active window to next virtual desktop.
+; ^+!Right::moveWindowToNextVirtualDesktop()
+
+; Move active window to next virtual desktop.
+; ^+!Left::moveWindowToNextVirtualDesktop()
 
 
 ;; Show video file full screen on the projected display.

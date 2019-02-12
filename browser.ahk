@@ -5,7 +5,10 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 ; Globals.
-SelectedBrowser := "Edge"
+; SelectedBrowser := "Edge"
+SelectedBrowser := "IE"
+; SelectedBrowser := "Firefox"
+; SelectedBrowser := "Opera"
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 NormalYouTubeURLSize := StrLen( NormalYouTubeURL )
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
@@ -289,9 +292,9 @@ getHoveredYouTubeURL()
 {
 	;SetKeyDelay, 400
     SendInput {Click right}
-	Sleep 200
+	Sleep 400
 	SendInput a
-	Sleep 200
+	Sleep 400
 	SendInput {Enter}
   	;SetKeyDelay, -1
   

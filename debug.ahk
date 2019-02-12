@@ -3,8 +3,8 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
-Debug := true
-Beep := true
+Debug := false
+Beep := false
 LogFile := "C:\tmp\shortcutkeys.log"
 Logging := false
 
@@ -88,8 +88,14 @@ debugState()
 }
 
 
-;; Test function.
-test( str )
+; Test functions.
+test( str = "" )
+{
+	test3()
+}
+
+
+test1( str = "" )
 {
     clip := getClipBoard()
     
@@ -105,4 +111,16 @@ test( str )
                 "%clip%"
             )
     }
+}
+
+
+test2()
+{
+	isWindowIDFullScreen()
+}
+
+
+test3()
+{
+	toggleProjectionMonitor()
 }

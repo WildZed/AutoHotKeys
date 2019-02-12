@@ -251,6 +251,33 @@ previousMonitorLaunched( launched = true )
 }
 
 
+switchToProjectionMonitorLaunched( launched = true )
+{
+    if ( checkActiveWindowOrSwitchToLaunched( launched ) )
+    {
+        switchToProjectionMonitor()
+    }
+}
+
+
+switchToMainMonitorLaunched( launched = true )
+{
+    if ( checkActiveWindowOrSwitchToLaunched( launched ) )
+    {
+        switchToMainMonitor()
+    }
+}
+
+
+toggleProjectionMonitorLaunched( launched = true )
+{
+    if ( checkActiveWindowOrSwitchToLaunched( launched ) )
+    {
+        toggleProjectionMonitor()
+    }
+}
+
+
 ; Full screen embed URL.
 toggleFullScreenYouTubeLaunched( embed = true, launched = true, fullScreen = -1 )
 {
@@ -336,12 +363,28 @@ showStoredLaunchCommands()
 }
 
 
+isActiveLaunchedWindow()
+{
+    global LaunchData
+    
+    activeWinID := WinActive( "A" )
+    
+    activeIsLaunched := ( activeWinID == LaunchData.windowID )
+    
+    log( "isActiveLaunchedWindow() + " activeWinID ", " LaunchData.windowID " -> " activeIsLaunched )
+    
+    return activeIsLaunched
+}
+
+
 ; GUI.
 
 launchButtonDialog()
 {
     global LaunchData
-    
+	
+	log( "launchButtonDialog()" )
+   
     LaunchData.dialog := true
     
     title := "Launch Buttons"
@@ -478,7 +521,41 @@ launchStoredCommand( key )
 }
 
 
-;; Switch active window to launched and pause/play, then switch back.
+; Switch active window (focus) to launched or back to stored window.
+toggleFocusLaunchedWindow()
+{
+    if ( ! checkLaunched( true, true ) )
+    {
+        return
+    }
+    
+    global LaunchData
+    
+	if ( isActiveLaunchedWindow() )
+	{
+		log( "toggleSwitchLaunchedWindow() + " LaunchData.type ", " LaunchData.typeModifier ", switching back to stored window..." )
+			
+		if ( ! isActiveStoredWindow() )
+		{
+			restoreActiveWindow()
+			; lastActiveWindow()
+		}
+	}
+	else
+	{
+		log( "toggleSwitchLaunchedWindow() + " LaunchData.type ", " LaunchData.typeModifier ", switching to launched window..." )
+	
+		storeActiveWindow()
+			
+		if ( checkSwitchToLaunchedWindowID() )
+		{
+			log( "toggleSwitchLaunchedWindow(), switched to window." )
+		}
+	}
+}
+
+
+; Switch active window to launched and pause/play, then switch back.
 pausePlayLaunched()
 { 
     if ( ! checkLaunched( true, true ) )
@@ -532,12 +609,12 @@ endLaunched()
             ; Move off projection screen first before toggling full screen and closing window.
             toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
             ; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
-            ; previousMonitorLaunched()
-            Send +#{Left}
+            switchToMainMonitorLaunched()
             closeBrowserWindow()
         }
         else if ( LaunchData.type == "Video" )
         {
+            switchToMainMonitorLaunched()
             quitVideo( LaunchData.typeModifier )
         }
         
@@ -587,17 +664,26 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     runWithSelectedBrowser( youTubeURL )
     ; activateSelectedBrowser()
     
+    ; if ( winTitle == "" )
+    ; {
+    ;     WinWait, YouTube,,4
+    ; }
+    ; else
+    ; {
+    ;     WinWait, %winTitle%,,4
+    ; }
+     
     if ( winTitle == "" )
     {
-        WinWait, YouTube,,4
+        WinWaitActive, YouTube,,4
     }
     else
     {
-        WinWait, %winTitle%,,4
+        WinWaitActive, %winTitle%,,4
     }
-    
+   
     ; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
-    ; Apparently not any more.
+    ; Apparently not any more. Oh yes it still needs it sometimes, but trying WinWaitActive first.
     ; Sleep 1800
     ; Sleep 800
     
@@ -629,7 +715,7 @@ launchVideo( videoFile = "", autoPlay = false )
         return false
     }
     
-    runWithAvailableVideoPlayer( videoFile )
+    runWithAvailableVideoPlayer( videoFile )	
     storeLaunched( "Video", "VideoLAN" )
 
     if ( ! autoPlay )
@@ -647,7 +733,7 @@ projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = 
     if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
     {
         ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
-        nextMonitorLaunched()
+        switchToProjectionMonitorLaunched()
         toggleFullScreenYouTubeLaunched( embed, true, 1 )
     }
 }
@@ -664,6 +750,9 @@ projectHoveredYouTube()
 ;; Launch YouTube clip full screen on projected displays.
 projectVideo( videoFile = "", autoPlay = false )
 {
-    launchVideo( videoFile, autoPlay )
-    SendInput +#{Right}
+    if ( launchVideo( videoFile, autoPlay ) )
+	{
+        ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
+        switchToProjectionMonitorLaunched()
+	}
 }
