@@ -1,0 +1,177 @@
+[11232] ahk: storeActiveWindow() -> 0x90a14, C:\Users\WBC_SoundDesk\Documents\AutoHotKeys\TestData\YouTubeURLs.txt - Notepad++
+[11232] ahk: launchButtonDialog()
+[11232] ahk: restoreActiveWindow() + 0x90a14, C:\Users\WBC_SoundDesk\Documents\AutoHotKeys\TestData\YouTubeURLs.txt - Notepad++
+[11232] ahk: raiseWindowID( 0x90a14 )
+[11232] ahk: raiseWindowID(), window exists -> 0x90a14
+[11232] ahk: checkSwitchToWindowID( 0x90a14 ) + C:\Users\WBC_SoundDesk\Documents\AutoHotKeys\TestData\YouTubeURLs.txt - Notepad++ -> 0x90a14
+[11232] ahk: isLaunched() + 0 -> 0
+[11232] ahk: launchYouTube( https://www.youtube.com/embed/WTezr8G9Y2M, 1, 1,  ) + https://www.youtube.com/embed/WTezr8G9Y2M?autoplay=1, launching
+[11232] ahk: storeLaunched( YouTube, 1 ) -> When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge, 0x160054
+[11232] ahk: getBrowserFocus( 0x160054, 4, 100 )
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: nextMonitor(), send right
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1281, y=68, w=1156, h=890, sw=, sh= -> cx=1859, cy=513
+[11232] ahk: getMonitorAt( ( 1859, 513 ), 1 ) -> 2
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 2
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1281, y=68, w=1156, h=890, sw=, sh= -> cx=1859, cy=513
+[11232] ahk: getMonitorAt( ( 1859, 513 ), 1 ) -> 2
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 2
+[11232] ahk: getMonitorArea( 2 ) -> ( 1280, 0 ), 1280, 1024
+[11232] ahk: isWindowIDFullScreen( 0x160054 ) + ( 1280, 0 ), 1280, 1024 + 0, ( 1281, 68 ), 1156, 890 -> 0
+[11232] ahk: checkActiveWindowFullScreen( 1 ) -> 1
+[11232] ahk: toggleFullScreenYouTube( 1, 0 )
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: raiseWindowID( 0x160054 )
+[11232] ahk: raiseWindowID(), window exists -> 0x160054
+[11232] ahk: checkSwitchToWindowID( 0x160054 ) + When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 0x160054
+[11232] ahk: endLaunched() + YouTube + 1, switched to window, ending...
+[11232] ahk: getBrowserFocus( 0x160054, 4, 20 )
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1280, y=0, w=1280, h=1024, sw=, sh= -> cx=1920, cy=512
+[11232] ahk: middleClick( 1920, 512 )
+[11232] ahk: middleClick( 1920, 512 )
+[11232] ahk: middleClick( 1920, 512 )
+[11232] ahk: middleClick( 1920, 512 )
+[11232] ahk: pauseOrPlayYouTubeOrVideoLAN()
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1280, y=0, w=1280, h=1024, sw=, sh= -> cx=1920, cy=512
+[11232] ahk: getMonitorAt( ( 1920, 512 ), 1 ) -> 2
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 2
+[11232] ahk: getMonitorArea( 2 ) -> ( 1280, 0 ), 1280, 1024
+[11232] ahk: isWindowIDFullScreen( 0x160054 ) + ( 1280, 0 ), 1280, 1024 + 0, ( 1280, 0 ), 1280, 1024 -> 1
+[11232] ahk: checkActiveWindowFullScreen( 0 ) -> 1
+[11232] ahk: toggleFullScreenYouTube( 1, 0 )
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1280, y=0, w=1280, h=1024, sw=, sh= -> cx=1920, cy=512
+[11232] ahk: getMonitorAt( ( 1920, 512 ), 1 ) -> 2
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 2
+[11232] ahk: nextMonitor(), send right
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1281, y=68, w=1156, h=890, sw=, sh= -> cx=1859, cy=513
+[11232] ahk: getMonitorAt( ( 1859, 513 ), 1 ) -> 2
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 2
+[11232] ahk: nextMonitor(), send right
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
+[11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
+[11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: raiseWindowID( 0x160054 )
+[11232] ahk: raiseWindowID(), window exists -> 0x160054
+[11232] ahk: checkSwitchToWindowID( 0x160054 ) + When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 0x160054
+[11232] ahk: endLaunched() + YouTube + 1, switched to window, ending...
+[11232] ahk: getBrowserFocus( 0x160054, 4, 20 )
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: pauseOrPlayYouTubeOrVideoLAN()
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: getMonitorArea( 1 ) -> ( 0, 0 ), 1280, 1024
+[11232] ahk: isWindowIDFullScreen( 0x160054 ) + ( 0, 0 ), 1280, 1024 + 0, ( 1, 48 ), 1156, 890 -> 0
+[11232] ahk: checkActiveWindowFullScreen( 0 ) -> 0
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
+[11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
+[11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: raiseWindowID( 0x160054 )
+[11232] ahk: raiseWindowID(), window exists -> 0x160054
+[11232] ahk: checkSwitchToWindowID( 0x160054 ) + When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 0x160054
+[11232] ahk: endLaunched() + YouTube + 1, switched to window, ending...
+[11232] ahk: getBrowserFocus( 0x160054, 4, 20 )
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: middleClick( 579, 493 )
+[11232] ahk: pauseOrPlayYouTubeOrVideoLAN()
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: getMonitorArea( 1 ) -> ( 0, 0 ), 1280, 1024
+[11232] ahk: isWindowIDFullScreen( 0x160054 ) + ( 0, 0 ), 1280, 1024 + 0, ( 1, 48 ), 1156, 890 -> 0
+[11232] ahk: checkActiveWindowFullScreen( 0 ) -> 0
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0x160054 -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0x160054 ) -> x=1, y=48, w=1156, h=890, sw=, sh= -> cx=579, cy=493
+[11232] ahk: getMonitorAt( ( 579, 493 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0x160054 ) -> 1
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
+[11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
+[11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+[11232] ahk: endLaunched() logActiveWindowID() -> 0xa0a3e
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: raiseWindowID( 0x160054 )
+[11232] ahk: raiseWindowID(), window exists -> 0xa0a3e
+[11232] ahk: checkSwitchToWindowID( 0x160054 ) +  -> 0xa0a3e
+[11232] ahk: endLaunched() + YouTube + 1, switched to window, ending...
+[11232] ahk: getBrowserFocus( 0x160054, 4, 20 )
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: getWindowIDCentre( 0x160054 ), unable to get window position details
+[11232] ahk: pauseOrPlayYouTubeOrVideoLAN()
+[11232] ahk: windowIDExists( 0x160054 ) + 0, 0xa0a3e, ,  -> 1
+[11232] ahk: isLaunched() + 0x160054 -> 1
+[11232] ahk: checkLaunched(), not yet launched
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0xa0a3e -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0xa0a3e ) -> x=976, y=432, w=304, h=119, sw=, sh= -> cx=1128, cy=491
+[11232] ahk: getMonitorAt( ( 1128, 491 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0xa0a3e ) -> 1
+[11232] ahk: getMonitorArea( 1 ) -> ( 0, 0 ), 1280, 1024
+[11232] ahk: isWindowIDFullScreen( 0xa0a3e ) + ( 0, 0 ), 1280, 1024 + 0, ( 976, 432 ), 304, 119 -> 0
+[11232] ahk: checkActiveWindowFullScreen( 0 ) -> 0
+[11232] ahk: checkActiveWindow( 1 ) + 0x160054, 0xa0a3e -> 1
+[11232] ahk: checkActiveWindowOrSwitchToLaunched( 1 ) -> 1
+[11232] ahk: getWindowIDCentre( 0xa0a3e ) -> x=976, y=432, w=304, h=119, sw=, sh= -> cx=1128, cy=491
+[11232] ahk: getMonitorAt( ( 1128, 491 ), 1 ) -> 1
+[11232] ahk: getWindowIDMonitor( 0xa0a3e ) -> 1
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: endLaunched() logActiveWindowID() -> 0xa0a3e
+[11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
+[11232] ahk: windowIDExists( 0x160054 ) + 0, 0xa0a3e, ,  -> 0
+[11232] ahk: checkWindowIDClosed( 0x160054 ) -> 1
+[11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 1
+[11232] ahk: endLaunched(), window closed
