@@ -31,6 +31,7 @@
 [11232] ahk: isWindowIDFullScreen( 0x160054 ) + ( 1280, 0 ), 1280, 1024 + 0, ( 1281, 68 ), 1156, 890 -> 0
 [11232] ahk: checkActiveWindowFullScreen( 1 ) -> 1
 [11232] ahk: toggleFullScreenYouTube( 1, 0 )
+
 [11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
 [11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
 [11232] ahk: raiseWindowID( 0x160054 )

@@ -730,6 +730,8 @@ launchVideo( videoFile = "", autoPlay = false )
 ;; Launch YouTube clip full screen on projected displays.
 projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = ""  )
 {
+    log( "projectYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
+	
     if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
     {
         ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
