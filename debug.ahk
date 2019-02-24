@@ -67,7 +67,7 @@ debugBeep( num = 1 )
 
 showDebugView()
 {
-    Run, C:\Program Files\Sys Internals\Dbgview.exe
+    Run, C:\Program Files\SysInternals\Dbgview.exe
 }
 
 
