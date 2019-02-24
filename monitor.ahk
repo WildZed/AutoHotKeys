@@ -94,6 +94,8 @@ previousMonitor()
 
 switchToMonitor( monitor )
 {
+	log( "switchToMonitor( " monitor " ), start" )
+	
 	currentWindowMonitor := getWindowIDMonitor()
 	activeWindowMonitor := currentWindowMonitor
 	
@@ -113,6 +115,8 @@ switchToMonitor( monitor )
 			break
 		}
 	}
+	
+	log( "switchToMonitor( " monitor " ), end" )
 }
 
 

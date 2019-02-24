@@ -593,7 +593,7 @@ pausePlayLaunched()
 ;; Swap projected application to PC screen.
 endLaunched()
 {
-    logActiveWindowID( "endLaunched()" )
+    logPush( "endLaunched(), start" )
 
     if ( checkSwitchToLaunchedWindowID() )
     {
@@ -625,15 +625,19 @@ endLaunched()
        
     if ( checkLaunchedWindowIDClosed() )
     {
-        log( "endLaunched(), window closed" )
-        
         if ( Debug )
         {
             debugBeep( 2 )
         }
         
         resetLaunchWindow()
+		
+        logPop( "endLaunched(), window closed" )  
     }
+	else
+	{
+        logPop( "endLaunched(), window not closed" )
+	}
 }
 
 
@@ -730,7 +734,7 @@ launchVideo( videoFile = "", autoPlay = false )
 ;; Launch YouTube clip full screen on projected displays.
 projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = ""  )
 {
-    log( "projectYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
+    logPush( "projectYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
 	
     if ( launchYouTube( youTubeURLOrId, autoPlay, embed, winTitle ) )
     {
@@ -738,6 +742,8 @@ projectYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = 
         switchToProjectionMonitorLaunched()
         toggleFullScreenYouTubeLaunched( embed, true, 1 )
     }
+	
+    logPop( "projectYouTube(), end" )
 }
 
 
@@ -752,9 +758,13 @@ projectHoveredYouTube()
 ;; Launch YouTube clip full screen on projected displays.
 projectVideo( videoFile = "", autoPlay = false )
 {
+    logPush( "projectVideo( " videoFile ", " autoPlay " ), launching" )
+	
     if ( launchVideo( videoFile, autoPlay ) )
 	{
         ; Must move to projection screen before toggling full screen, otherwise it gets the wrong size.
         switchToProjectionMonitorLaunched()
 	}
+	
+    logPop( "projectVideo(), end" )
 }

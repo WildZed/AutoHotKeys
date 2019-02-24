@@ -3,40 +3,76 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
-Debug := false
-Beep := false
 LogFile := "C:\tmp\shortcutkeys.log"
-Logging := false
+Debug := { debug : true, beep : false, logging : false, logFile : LogFile, indent : 0, indentStr : "", unitIndentStr : "  " }
 
 
 
 
 createLog()
 {
-	global LogFile
-	global Logging
+	global Debug
 	
-	if ( Logging )
+	if ( Debug.logging )
 	{
-		file := FileOpen( LogFile, "w" )
+		file := FileOpen( Debug.logFile, "w" )
 		file.Close()
 	}
 }
 
 
+createIndentString( indent, unitIndentStr )
+{	
+	indentStr := ""
+	
+	Loop, %indent%
+	{
+		indentStr := indentStr unitIndentStr
+	}
+	
+	return indentStr
+}
+
+
+pushLogIndent()
+{
+	global Debug
+	
+	Debug.indent := Debug.indent + 1
+	Debug.indentStr := createIndentString( Debug.indent, Debug.unitIndentStr )
+}
+
+
+popLogIndent()
+{
+	global Debug
+	
+	Debug.indent := Debug.indent - 1
+	Debug.indentStr := createIndentString( Debug.indent, Debug.unitIndentStr )
+}
+
+
 log( text )
 {
-    global Debug, LogFile, Logging
+    global Debug
+	
+	if ( ! Debug.debug && ! Debug.logging )
+	{
+		return
+	}
+	
+	text := Debug.indentStr text
     
-    if ( Debug )
+    if ( Debug.debug )
     {
         OutputDebug ahk: %text%
     }
 	
-	if ( Logging )
+	if ( Debug.logging )
 	{
-		; FileAppend, %text% "`n", %LogFile%
-		file := FileOpen( LogFile, "a" )
+		logFile := Debug.logFile
+		; FileAppend, %text% "`n", %logFile%
+		file := FileOpen( logFile, "a" )
 		file.Write( text "`n" )
 		file.Close()
 	}
@@ -45,17 +81,56 @@ log( text )
 
 logActiveWindowID( label )
 {
+    global Debug
+	
+	if ( ! Debug.debug && ! Debug.logging )
+	{
+		return
+	}
+	
 	activeWinID := WinExist( "A" )
 	
 	log( label " logActiveWindowID() -> " activeWinID )
 }
 
 
+logPush( label )
+{
+    global Debug
+	
+	if ( ! Debug.debug && ! Debug.logging )
+	{
+		return
+	}
+	
+	activeWinID := WinExist( "A" )
+	
+	log( label " ( " activeWinID " )" )
+	pushLogIndent()
+}
+
+
+logPop( label )
+{
+    global Debug
+	
+	if ( ! Debug.debug && ! Debug.logging )
+	{
+		return
+	}
+
+	activeWinID := WinExist( "A" )
+	
+	popLogIndent()
+	log( label " ( " activeWinID " )" )
+}
+
+
 debugBeep( num = 1 )
 {
-    global Beep
+    global Debug
     
-    if ( Beep )
+    if ( Debug.beep )
     {
         Loop, %num%
         {
@@ -73,11 +148,11 @@ showDebugView()
 
 debugState()
 {
-    global Logging
+    global Debug
     global SelectedBrowser
     global LaunchData
     
-    debugText :=            "Logging = " Logging "`n"
+    debugText :=            "Logging = " Debug.logging "`n"
     debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
     debugText := debugText  "launch type = " LaunchData.type "`n"
     debugText := debugText  "launch type modifier = " LaunchData.typeModifier "`n"

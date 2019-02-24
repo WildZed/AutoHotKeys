@@ -74,6 +74,7 @@
 [11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
 [11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
 [11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+
 [11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
 [11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
 [11232] ahk: raiseWindowID( 0x160054 )
@@ -106,6 +107,7 @@
 [11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
 [11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
 [11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+
 [11232] ahk: endLaunched() logActiveWindowID() -> 0x160054
 [11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
 [11232] ahk: raiseWindowID( 0x160054 )
@@ -138,6 +140,7 @@
 [11232] ahk: windowIDExists( 0x160054 ) + 1, 0x160054, , When You Believe MV - Whitney Houston and Mariah Carey - YouTube ?- Microsoft Edge -> 1
 [11232] ahk: checkWindowIDClosed( 0x160054 ) -> 0
 [11232] ahk: checkLaunchedWindowIDClosed(  ) + 0x160054 -> 0
+
 [11232] ahk: endLaunched() logActiveWindowID() -> 0xa0a3e
 [11232] ahk: windowOrLaunchedWindowID(  ) -> 0x160054
 [11232] ahk: raiseWindowID( 0x160054 )

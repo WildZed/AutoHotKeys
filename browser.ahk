@@ -5,8 +5,8 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 ; Globals.
-SelectedBrowser := "Edge"
-; SelectedBrowser := "IE"
+; SelectedBrowser := "Edge"
+SelectedBrowser := "IE"
 ; SelectedBrowser := "Firefox"
 ; SelectedBrowser := "Opera"
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
