@@ -94,29 +94,34 @@ previousMonitor()
 
 switchToMonitor( monitor )
 {
-	log( "switchToMonitor( " monitor " ), start" )
+	logPush( "switchToMonitor( " monitor " ), start" )
 	
 	currentWindowMonitor := getWindowIDMonitor()
 	activeWindowMonitor := currentWindowMonitor
+	switched := false
 	
 	Loop, 8
 	{
 		if ( activeWindowMonitor == monitor )
 		{
+			switched := true
 			break
 		}
 		
 		nextMonitor()
-		Sleep 200
+		Sleep 400
 		activeWindowMonitor := getWindowIDMonitor()
 		
+		; Detect loop.
 		if ( activeWindowMonitor == curentWindowMonitor )
 		{
 			break
 		}
 	}
 	
-	log( "switchToMonitor( " monitor " ), end" )
+	logPop( "switchToMonitor( " monitor " ), end" )
+	
+	return switched
 }
 
 
@@ -124,7 +129,7 @@ switchToMainMonitor()
 {
 	global MainMonitor
 	
-	switchToMonitor( MainMonitor )
+	return switchToMonitor( MainMonitor )
 }
 
 
@@ -132,7 +137,7 @@ switchToProjectionMonitor()
 {
 	global ProjectionMonitor
 	
-	switchToMonitor( ProjectionMonitor )
+	return switchToMonitor( ProjectionMonitor )
 }
 
 
@@ -144,12 +149,14 @@ toggleProjectionMonitor()
 	
 	if ( currentWindowMonitor == MainMonitor )
 	{
-		switchToProjectionMonitor()
+		switched := switchToProjectionMonitor()
 	}
 	else
 	{
-		switchToMainMonitor()
+		switched := switchToMainMonitor()
 	}
+	
+	return switched
 }
 
 

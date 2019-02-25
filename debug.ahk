@@ -153,7 +153,7 @@ debugState()
     global LaunchData
     
     debugText :=            "Logging = " Debug.logging "`n"
-    debugText := debugText  "SelectedBrowser = " SelectedBrowser "`n"
+    debugText := debugText  "SelectedBrowser = " SelectedBrowser.name "`n"
     debugText := debugText  "launch type = " LaunchData.type "`n"
     debugText := debugText  "launch type modifier = " LaunchData.typeModifier "`n"
     debugText := debugText  "launch window title = " LaunchData.windowTitle "`n"

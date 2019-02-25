@@ -205,7 +205,7 @@ checkSwitchToLaunchedWindowID( windowID = "" )
 }
 
 
-waitForCloseWindow( winTitle = "" )
+waitForCloseWindow( winTitle = "", timeout = 8 )
 {
     windowID := windowOrLaunchedWindowID( winTitle )
     
@@ -214,7 +214,7 @@ waitForCloseWindow( winTitle = "" )
         return false
     }
 
-    WinWaitClose, ahk_id %windowID%,, 8
+    WinWaitClose, ahk_id %windowID%,, %timeout%
 }
 
 
@@ -253,38 +253,57 @@ previousMonitorLaunched( launched = true )
 
 switchToProjectionMonitorLaunched( launched = true )
 {
+	switched := false
+	
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
-        switchToProjectionMonitor()
+        switched := switchToProjectionMonitor()
     }
+
+	return switched
 }
 
 
 switchToMainMonitorLaunched( launched = true )
 {
+	switched := false
+	
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
-        switchToMainMonitor()
+        switched := switchToMainMonitor()
     }
+	
+	return switched
 }
 
 
 toggleProjectionMonitorLaunched( launched = true )
 {
+	switched := false
+	
     if ( checkActiveWindowOrSwitchToLaunched( launched ) )
     {
-        toggleProjectionMonitor()
+        switched := toggleProjectionMonitor()
     }
+	
+	return switched
 }
 
 
 ; Full screen embed URL.
 toggleFullScreenYouTubeLaunched( embed = true, launched = true, fullScreen = -1 )
 {
-    if ( checkActiveWindowOrSwitchToLaunched( launched ) && checkActiveWindowFullScreen( fullScreen ) )
+    if ( ! checkActiveWindowOrSwitchToLaunched( launched ) )
+	{
+		return false
+	}
+	
+	if ( checkActiveWindowFullScreen( fullScreen ) )
     {
-        toggleFullScreenYouTube( embed = true, fullScreen = -1 )
+        toggleFullScreenYouTube( embed, fullScreen )
     }
+	
+	return true
 }
 
 
@@ -590,6 +609,36 @@ pausePlayLaunched()
 }
 
 
+endYouTube( windowID )
+{
+	logPush( "endYouTube( " windowID " ), start" )
+	
+	getBrowserFocus( windowID, 4, 20 )
+	pauseOrPlayYouTubeOrVideoLAN()
+	; toggleMuteYouTube()
+	
+	; Move off projection screen first before toggling full screen and closing window.
+	toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
+	; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
+	switched := switchToMainMonitorLaunched()
+	checkCloseBrowserWindow( windowID )
+	
+	logPop( "endYouTube(), end" )
+}
+
+
+endVideo( windowID )
+{
+	logPush( "endVideo( " windowID " ), start" )
+	
+	switchToMainMonitorLaunched()
+	quitVideo( LaunchData.typeModifier )
+	WinWaitClose, ahk_id %windowID%,, 8
+	
+	logPop( "endVideo(), end" )
+}
+
+
 ;; Swap projected application to PC screen.
 endLaunched()
 {
@@ -603,22 +652,12 @@ endLaunched()
         
         if ( LaunchData.type == "YouTube" )
         {
-            getBrowserFocus( LaunchData.windowID, 4, 20 )
-            pauseOrPlayYouTubeOrVideoLAN()
-            ; toggleMuteYouTube()
-            ; Move off projection screen first before toggling full screen and closing window.
-            toggleFullScreenYouTubeLaunched( LaunchData.typeModifier, true, 0 )
-            ; Screen swapping doesn't work for full screen, so this needs to happen after toggling full screen.
-            switchToMainMonitorLaunched()
-            closeBrowserWindow()
+			endYouTube( LaunchData.windowID )
         }
         else if ( LaunchData.type == "Video" )
         {
-            switchToMainMonitorLaunched()
-            quitVideo( LaunchData.typeModifier )
+			endVideo( LaunchData.windowID )
         }
-        
-        waitForCloseWindow()
     }
     
     logActiveWindowID( "endLaunched()" )
@@ -643,10 +682,14 @@ endLaunched()
 
 ;; Launch YouTube clip full screen on projected displays.
 launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "" )
-{
+{  
+    logPush( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ), launching" )
+	
     if ( ! checkLaunched( false, true ) )
     {
-        return false
+		logPop( "launchYouTube(), end" )
+
+		return false
     }
    
     if ( youTubeURLOrId == "" )
@@ -655,37 +698,21 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     
         if ( youTubeURLOrId == "" )
         {
+			logPop( "launchYouTube(), end" )
+			
             return false
         }
     }
    
     youTubeURL := composeYouTubeURL( youTubeURLOrId, autoPlay, embed )
-    
-    log( "launchYouTube( " youTubeURLOrId ", " autoPlay ", " embed ", " winTitle " ) + " youTubeURL ", launching" )
+	
+    log( "launchYouTube() + " youTubeURL ", launching" )
     
     ; MsgBox %youTubeURL%
 
     runWithSelectedBrowser( youTubeURL )
     ; activateSelectedBrowser()
-    
-    ; if ( winTitle == "" )
-    ; {
-    ;     WinWait, YouTube,,4
-    ; }
-    ; else
-    ; {
-    ;     WinWait, %winTitle%,,4
-    ; }
-     
-    if ( winTitle == "" )
-    {
-        WinWaitActive, YouTube,,4
-    }
-    else
-    {
-        WinWaitActive, %winTitle%,,4
-    }
-   
+	winWaitActiveYouTube( winTitle )
     ; A delay is required otherwise the activate/store doesn't work and the store and project don't work.
     ; Apparently not any more. Oh yes it still needs it sometimes, but trying WinWaitActive first.
     ; Sleep 1800
@@ -695,7 +722,9 @@ launchYouTube( youTubeURLOrId = "", autoPlay = false, embed = true, winTitle = "
     windowID := storeLaunched( "YouTube", embed )
     ; focusInternetExplorer() ; Doesn't work.
     getBrowserFocus( windowID, 4, 100 )
-    
+	
+	logPop( "launchYouTube(), end" )
+   
     return true
 }
 
