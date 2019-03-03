@@ -5,7 +5,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 ; Globals.
-EdgeBrowser := { name : "Edge", exe : "", class : "IEFrame" }
+EdgeBrowser := { name : "Edge", exe : "", class : "ApplicationFrameWindow" }
 IEBrowser := { name : "IE", exe : "iexplore.exe", class : "IEFrame" }
 FirefoxBrowser := { name : "Firefox", exe : "firefox.exe", class : "MozillaWindowClass" }
 OperaBrowser := { name : "Opera", exe : "opera.exe", class : "Chrome_WidgetWin_1" }
@@ -229,7 +229,9 @@ youTubeSearch()
 
 closeBrowserWindow()
 {
-    SendInput ^w
+	log( "closeBrowserWindow()" )
+    ; SendInput ^w
+	Send ^w
 }
 
 
@@ -271,10 +273,10 @@ winWaitActiveYouTube( winTitle = "YouTube", timeout = 4 )
 
 checkCloseBrowserWindow( windowID )
 {
+	logPush( "checkCloseBrowserWindow( " windowID " )" )
+	
 	Loop, 4
-	{
-		log( "checkCloseBrowserWindow( " windowID " )" )
-		
+	{		
 		closeBrowserWindow()
 		WinWaitClose, ahk_id %windowID%,, 2
 		
@@ -285,6 +287,8 @@ checkCloseBrowserWindow( windowID )
 		
 		getBrowserFocus( windowID, 4, 200 )
 	}
+	
+	logPop( "checkCloseBrowserWindow()" )
 }
 
 
