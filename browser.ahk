@@ -9,8 +9,8 @@ EdgeBrowser := { name : "Edge", exe : "", class : "ApplicationFrameWindow" }
 IEBrowser := { name : "IE", exe : "iexplore.exe", class : "IEFrame" }
 FirefoxBrowser := { name : "Firefox", exe : "firefox.exe", class : "MozillaWindowClass" }
 OperaBrowser := { name : "Opera", exe : "opera.exe", class : "Chrome_WidgetWin_1" }
-SelectedBrowser := EdgeBrowser
-; SelectedBrowser := IEBrowser
+; SelectedBrowser := EdgeBrowser
+SelectedBrowser := IEBrowser
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
 YouTubeData := { normalURL : NormalYouTubeURL, normalURLSize : StrLen( NormalYouTubeURL ), embedURL : EmbedYouTubeURL, embedURLSize : StrLen( EmbedYouTubeURL ), embedURLAutoPlay : "?autoplay=1", embedURLNoAutoPlay : "?autoplay=0", youTubeIDSize : 11 }
@@ -271,12 +271,22 @@ winWaitActiveYouTube( winTitle = "YouTube", timeout = 4 )
 }
 
 
-checkCloseBrowserWindow( windowID, retries = 0, wait = 2 )
+checkCloseBrowserWindow( windowID, retries = 0, timeout = 2, delay = 200 )
 {
     logPush( "checkCloseBrowserWindow( " windowID " )" )
 
-    closeBrowserWindow()
-    WinWaitClose, ahk_id %windowID%,, %wait%
+    activeWinID := WinActive( ahk_id %windowID% )
+	
+	if ( checkSwitchToWindowID( windowID ) )
+	{
+		closeBrowserWindow()
+		WinWaitClose, ahk_id %windowID%,, %timeout%
+	}
+	else
+	{
+		Sleep %delay%
+	}
+	
     success := checkWindowIDClosed( windowID )
 
     Loop, %retries%
@@ -287,9 +297,17 @@ checkCloseBrowserWindow( windowID, retries = 0, wait = 2 )
         }
 
         ; For some reason it loses browser focus when toggled or switched to main monitor.
-        getBrowserFocus( windowID, 4, 200 )
-        closeBrowserWindow()
-        WinWaitClose, ahk_id %windowID%,, %wait%
+		if ( checkSwitchToWindowID( windowID ) )
+		{
+			getBrowserFocus( windowID, 4, 200 )
+			closeBrowserWindow()
+			WinWaitClose, ahk_id %windowID%,, %timeout%
+		}
+		else
+		{
+			Sleep %delay%
+		}
+		
         success := checkWindowIDClosed( windowID )
     }
 
@@ -329,7 +347,7 @@ toggleFullScreenYouTube( embed = true, fullScreen = -1 )
 }
 
 
-checkToggleFullScreenYouTube( embed = true, fullScreen = -1, retries = 0, wait = 200 )
+checkToggleFullScreenYouTube( embed = true, fullScreen = -1, retries = 0, delay = 200 )
 {
     if ( ! checkActiveWindowFullScreen( fullScreen ) )
     {
@@ -341,7 +359,7 @@ checkToggleFullScreenYouTube( embed = true, fullScreen = -1, retries = 0, wait =
     logPush( "toggleFullScreenYouTube( " embed ", " fullScreen " )" )
 
     toggleFullScreenYouTube( embed, fullScreen )
-    Sleep %wait%
+    Sleep %delay%
     success := ! checkActiveWindowFullScreen( fullScreen )
 
     Loop, %retries%
@@ -352,7 +370,7 @@ checkToggleFullScreenYouTube( embed = true, fullScreen = -1, retries = 0, wait =
         }
 
         toggleFullScreenYouTube( embed, fullScreen )
-        Sleep %wait%
+        Sleep %delay%
         success := ! checkActiveWindowFullScreen( fullScreen )
     }
 

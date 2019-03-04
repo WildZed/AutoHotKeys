@@ -153,7 +153,7 @@ restoreMousePosition()
 }
 
 
-raiseWindow( windowTitle, wait = 2 )
+raiseWindow( windowTitle, timeout = 2 )
 {
     if ( ! windowTitle )
     {
@@ -165,15 +165,15 @@ raiseWindow( windowTitle, wait = 2 )
     originalTitleMatchMode := A_TitleMatchMode
     
     SetTitleMatchMode, 1
-    WinWait %windowTitle%,, %wait%
+    WinWait %windowTitle%,, %timeout%
     WinActivate %windowTitle%
-    ; WinWaitActive %windowTitle%,, %wait%
+    ; WinWaitActive %windowTitle%,, %timeout%
     
     SetTitleMatchMode, %originalTitleMatchMode%
 }
 
 
-raiseWindowID( windowID, wait = 2 )
+raiseWindowID( windowID, timeout = 2 )
 {
     if ( ! windowID )
     {
@@ -182,7 +182,7 @@ raiseWindowID( windowID, wait = 2 )
     
     log( "raiseWindowID( " windowID " )" )
     
-    WinWait, ahk_id %windowID%,, %wait%
+    WinWait, ahk_id %windowID%,, %timeout%
     ; Nothing can activate another window when on a full screen window!
     ; WinShow, ahk_id %windowID%
     ; WinSet, Enable,, ahk_id %windowID%
@@ -210,42 +210,65 @@ raiseWindowID( windowID, wait = 2 )
 
     ; WinRestore, ahk_id %windowID%
     ; Sometimes the window won't activate.
-    ; WinWaitActive, ahk_id %windowID%,, %wait%
+    ; WinWaitActive, ahk_id %windowID%,, %timeout%
 }
 
 
 ; This is not always working for some reason.
 ; Maybe it has difficulty switch to some types of window.
-checkSwitchToWindowID( windowID, wait = 2 )
+checkSwitchToWindowID( windowID, retries = 4, timeout = 2 )
 {
-    global Debug
-    
-    if ( ! windowID )
+    if ( ! windowID || ! windowIDExists( windowID ) )
     {
         log( "checkSwitchToWindowID( " windowID " ), no window to switch" )
         debugBeep()
 
         return false
     }
+	
+	winIsActive := WinActive( ahk_id %windowID% )
+	raised := false
+	
+	if ( ! winIsActive )
+	{
+		raised := true
+		raiseWindowID( windowID, timeout )
+		winIsActive := WinActive( ahk_id %windowID% )
+	}
     
-    Loop, 4
+    Loop, %retries%
     {
-        raiseWindowID( windowID, wait )
-        
-        winIsActive := WinActive( ahk_id %windowID% )
-        
         if ( winIsActive )
         {
             break
         }
-        else
-        {
-            debugBeep()
-        }
-    }
+
+		debugBeep()
+		raiseWindowID( windowID, timeout )      
+        winIsActive := WinActive( ahk_id %windowID% )
+   }
     
     WinGetTitle, windowTitle, ahk_id %windowID%
-    log( "checkSwitchToWindowID( " windowID " ) + " windowTitle " -> " winIsActive )
+	
+	if ( ! windowTitle )
+	{
+		; Sometimes WinActive returns the wrong result.
+		log( "checkSwitchToWindowID(), WinActive failed to give correct result or WinGetTitle failed, treating as window non-existent" )
+		winIsActive := false
+	}
+	
+	if ( ! winIsActive )
+	{
+		log( "checkSwitchToWindowID( " windowID " ), window non-existent or failed to raise window + " windowTitle )
+	}
+	else if ( raised )
+	{
+		log( "checkSwitchToWindowID( " windowID " ), raised + " windowTitle " -> " winIsActive )
+	}
+	else
+	{
+		log( "checkSwitchToWindowID( " windowID " ), already active + " windowTitle )
+	}
 
     return winIsActive
 }
@@ -267,11 +290,11 @@ windowIDExists( windowID, default = false )
 	checkExistWinID := WinExist( ahk_id %windowID% )
 	; This seems to work, but there is a delay after closing the window before the count drops to 0.
 	WinGet winCount, Count, ahk_id %windowID%
-	; checkActiveWinID := WinActive( ahk_id %windowID% )
+	checkActiveWinID := WinActive( ahk_id %windowID% )
     WinGetTitle, windowTitle, ahk_id %windowID%
 	
-	winExistsAny := ( winCount || checkExistWinID || windowTitle )
-    winExistsAll := ( winCount && checkExistWinID && windowTitle )
+	winExistsAny := ( winCount || checkExistWinID == windowID || windowTitle )
+    winExistsAll := ( winCount && checkExistWinID == windowID && windowTitle )
     
     if ( winExistsAny == winExistsAll )
     {

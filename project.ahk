@@ -623,13 +623,13 @@ endYouTube( windowID, typeModifier )
 }
 
 
-endVideo( windowID, typeModifier )
+endVideo( windowID, typeModifier, timeout = 8 )
 {
     logPush( "endVideo( " windowID " ), start" )
 
     switchToMainMonitorLaunched()
     quitVideo( typeModifier )
-    WinWaitClose, ahk_id %windowID%,, 8
+    WinWaitClose, ahk_id %windowID%,, %timeout%
 
     logPop( "endVideo(), end" )
 }
