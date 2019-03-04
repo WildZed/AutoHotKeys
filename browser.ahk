@@ -10,6 +10,7 @@ IEBrowser := { name : "IE", exe : "iexplore.exe", class : "IEFrame" }
 FirefoxBrowser := { name : "Firefox", exe : "firefox.exe", class : "MozillaWindowClass" }
 OperaBrowser := { name : "Opera", exe : "opera.exe", class : "Chrome_WidgetWin_1" }
 SelectedBrowser := EdgeBrowser
+; SelectedBrowser := IEBrowser
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
 YouTubeData := { normalURL : NormalYouTubeURL, normalURLSize : StrLen( NormalYouTubeURL ), embedURL : EmbedYouTubeURL, embedURLSize : StrLen( EmbedYouTubeURL ), embedURLAutoPlay : "?autoplay=1", embedURLNoAutoPlay : "?autoplay=0", youTubeIDSize : 11 }
@@ -21,14 +22,14 @@ YouTubeData := { normalURL : NormalYouTubeURL, normalURLSize : StrLen( NormalYou
 composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
 {
     global YouTubeData
-    
+
     if ( youTubeURLOrId == "" )
     {
         return ""
     }
-    
+
     youTubeIdPos := InStr( youTubeURLOrId, YouTubeData.embedURL )
-    
+
     if ( 0 != youTubeIdPos )
     {
         youTubeIdPos := youTubeIdPos + YouTubeData.embedURLSize
@@ -36,7 +37,7 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     else
     {
         youTubeIdPos := InStr( youTubeURLOrId, YouTubeData.normalURL )
-        
+
         if ( 0 != youTubeIdPos )
         {
             youTubeIdPos := youTubeIdPos + YouTubeData.normalURLSize
@@ -46,11 +47,11 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
             youTubeIdPos := 1
         }
     }
-    
+
     youTubeId := SubStr( youTubeURLOrId, youTubeIdPos, YouTubeData.youTubeIDSize )
-    
+
     ; MsgBox %youTubeIdPos% %YouTubeIdSize% %youTubeId%
-    
+
     if ( embed )
     {
         youTubeURL := YouTubeData.embedURL . youTubeId
@@ -59,9 +60,9 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     {
         youTubeURL := YouTubeData.normalURL . youTubeId
     }
-    
+
     ; Do the opposite of autoplay because we must click to gain focus, which either plays or pauses.
-	; No just do two clicks in the player to focus+play/pause and re-pause/play.
+    ; No just do two clicks in the player to focus+play/pause and re-pause/play.
     if ( autoPlay )
     {
         youTubeURL := youTubeURL . YouTubeData.embedURLAutoPlay
@@ -70,117 +71,117 @@ composeYouTubeURL( youTubeURLOrId, autoPlay = false, embed = true )
     {
         youTubeURL := youTubeURL . YouTubeData.embedURLNoAutoPlay
     }
-    
+
     ; MsgBox %youTubeURL%
-    
+
     return youTubeURL
 }
 
 
 runWithSelectedBrowser( url )
 {
-	global SelectedBrowser
-	
-	if ( "IE" == SelectedBrowser.name )
-	{
-		Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
-	}
-	else if ( "Edge" == SelectedBrowser.name )
-	{
-		Run microsoft-edge:%url%
-	}
-	else if ( "Firefox" == SelectedBrowser.name )
-	{
-		Run "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" %url%
-	}
-	else if ( "Opera" == SelectedBrowser.name )
-	{
-		Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
-	}
-	else
-	{
-		Run %url%
-	}
+    global SelectedBrowser
+
+    if ( "IE" == SelectedBrowser.name )
+    {
+        Run "C:\Program Files\Internet Explorer\iexplore.exe" %url%
+    }
+    else if ( "Edge" == SelectedBrowser.name )
+    {
+        Run microsoft-edge:%url%
+    }
+    else if ( "Firefox" == SelectedBrowser.name )
+    {
+        Run "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" %url%
+    }
+    else if ( "Opera" == SelectedBrowser.name )
+    {
+        Run "C:\Program Files (x86)\Opera\launcher.exe" %url%
+    }
+    else
+    {
+        Run %url%
+    }
 }
 
 
 activateSelectedBrowser()
 {
-	global SelectedBrowser
-	
-	activated := false
-	activeWinID := 0
-	
-	if ( "IE" == SelectedBrowser.name )
-	{
-		WinActivate ahk_class IEFrame
-		WinWaitActive ahk_class IEFrame,,1
-		WinExist( ahk_class IEFrame )
-		activeWinID := WinActive( ahk_class IEFrame )
-	}
-	else if ( "Edge" == SelectedBrowser.name )
-	{
-		WinActivate ahk_class ApplicationFrameWindow
-		WinWaitActive ahk_class ApplicationFrameWindow,,1
-		WinExist( ahk_class ApplicationFrameWindow )
-		activeWinID := WinActive( ahk_class ApplicationFrameWindow )
-	}
-	else if ( "Firefox" == SelectedBrowser.name )
-	{
-		WinActivate ahk_class MozillaWindowClass
-		WinWaitActive ahk_class MozillaWindowClass,,1
-		WinExist( ahk_class MozillaWindowClass )
-		activeWinID := WinActive( ahk_class MozillaWindowClass )
-	}
-	else if ( "Opera" == SelectedBrowser.name )
-	{
-		WinActivate ahk_class Chrome_WidgetWin_1
-		WinWaitActive ahk_class Chrome_WidgetWin_1,,1
-		WinExist( ahk_class Chrome_WidgetWin_1 )
-		activeWinID := WinActive( ahk_class Chrome_WidgetWin_1 )
-	}
-	
-	if ( activeWinID )
-	{
-		WinGetTitle windowTitle, ahk_id %activeWinID%
-		log( "activateSelectedBrowser(), active window " activeWinID ", " windowTitle )
-		WinShow, ahk_id %activeWinID%
-	}
-	
-	activated := ( 0 != activeWinID )
-	
-	log( "activateSelectedBrowser() + " SelectedBrowser ", " activeWinID " -> " activated )
-	
-	return activated
+    global SelectedBrowser
+
+    activated := false
+    activeWinID := 0
+
+    if ( "IE" == SelectedBrowser.name )
+    {
+        WinActivate ahk_class IEFrame
+        WinWaitActive ahk_class IEFrame,,1
+        WinExist( ahk_class IEFrame )
+        activeWinID := WinActive( ahk_class IEFrame )
+    }
+    else if ( "Edge" == SelectedBrowser.name )
+    {
+        WinActivate ahk_class ApplicationFrameWindow
+        WinWaitActive ahk_class ApplicationFrameWindow,,1
+        WinExist( ahk_class ApplicationFrameWindow )
+        activeWinID := WinActive( ahk_class ApplicationFrameWindow )
+    }
+    else if ( "Firefox" == SelectedBrowser.name )
+    {
+        WinActivate ahk_class MozillaWindowClass
+        WinWaitActive ahk_class MozillaWindowClass,,1
+        WinExist( ahk_class MozillaWindowClass )
+        activeWinID := WinActive( ahk_class MozillaWindowClass )
+    }
+    else if ( "Opera" == SelectedBrowser.name )
+    {
+        WinActivate ahk_class Chrome_WidgetWin_1
+        WinWaitActive ahk_class Chrome_WidgetWin_1,,1
+        WinExist( ahk_class Chrome_WidgetWin_1 )
+        activeWinID := WinActive( ahk_class Chrome_WidgetWin_1 )
+    }
+
+    if ( activeWinID )
+    {
+        WinGetTitle windowTitle, ahk_id %activeWinID%
+        log( "activateSelectedBrowser(), active window " activeWinID ", " windowTitle )
+        WinShow, ahk_id %activeWinID%
+    }
+
+    activated := ( 0 != activeWinID )
+
+    log( "activateSelectedBrowser() + " SelectedBrowser ", " activeWinID " -> " activated )
+
+    return activated
 }
 
 
 closeSelectedBrowser()
 {
-	global Debug
-	global SelectedBrowser
-	
-	log( "closeSelectedBrowser() + " SelectedBrowser )
-	
-	activated := activateSelectedBrowser()
+    global Debug
+    global SelectedBrowser
 
-	if ( "Opera" == SelectedBrowser.name )
-	{		
-		if ( activated )
-		{
-			exitOpera()
-		}
-	}
-	
-	if ( activated )
-	{
-		closeBrowserWindow()
-	}
-	else
-	{
-		log( "closeSelectedBrowser() + " SelectedBrowser ", not closed" )
-		debugBeep()
-	}
+    log( "closeSelectedBrowser() + " SelectedBrowser )
+
+    activated := activateSelectedBrowser()
+
+    if ( "Opera" == SelectedBrowser.name )
+    {
+        if ( activated )
+        {
+            exitOpera()
+        }
+    }
+
+    if ( activated )
+    {
+        closeBrowserWindow()
+    }
+    else
+    {
+        log( "closeSelectedBrowser() + " SelectedBrowser ", not closed" )
+        debugBeep()
+    }
 }
 
 
@@ -188,11 +189,11 @@ closeSelectedBrowser()
 focusInternetExplorer()
 {
     global launchWin
-    
+
     ControlFocus ; , "Internet Explorer_Server1", %launchWin%
     ; Control, Enable,, "Internet Explorer_Server1", %launchWin%
     ControlGetFocus, focusControl
-    
+
     MsgBox %focusControl%
 }
 
@@ -229,66 +230,72 @@ youTubeSearch()
 
 closeBrowserWindow()
 {
-	log( "closeBrowserWindow()" )
-    ; SendInput ^w
-	Send ^w
+    log( "closeBrowserWindow()" )
+    SendInput ^w
 }
 
 
 exitOpera()
 {
-	SendInput ^+x
+    SendInput ^+x
 }
 
 
 winWaitBrowser( winTitle, timeout = 4 )
 {
-	global SelectedBrowser
-	
-	class := SelectedBrowser.class
-	WinWait, %winTitle% ahk_class %class%,,%timeout%
+    global SelectedBrowser
+
+    class := SelectedBrowser.class
+    WinWait, %winTitle% ahk_class %class%,,%timeout%
 }
 
 
 winWaitActiveBrowser( winTitle, timeout = 4 )
 {
-	global SelectedBrowser
-	
-	class := SelectedBrowser.class 
-	WinWaitActive, %winTitle% ahk_class %class%,,%timeout%
+    global SelectedBrowser
+
+    class := SelectedBrowser.class
+    WinWaitActive, %winTitle% ahk_class %class%,,%timeout%
 }
 
 
 winWaitYouTube( winTitle = "YouTube", timeout = 4 )
 {
-	winWaitActiveBrowser( winTitle, timeout )
+    winWaitActiveBrowser( winTitle, timeout )
 }
 
 
 winWaitActiveYouTube( winTitle = "YouTube", timeout = 4 )
 {
-	winWaitActiveBrowser( winTitle, timeout )
+    winWaitActiveBrowser( winTitle, timeout )
 }
 
 
-checkCloseBrowserWindow( windowID )
+checkCloseBrowserWindow( windowID, retries = 0, wait = 2 )
 {
-	logPush( "checkCloseBrowserWindow( " windowID " )" )
-	
-	Loop, 4
-	{		
-		closeBrowserWindow()
-		WinWaitClose, ahk_id %windowID%,, 2
-		
-		if ( checkWindowIDClosed( windowID ) )
-		{
-			break
-		}
-		
-		getBrowserFocus( windowID, 4, 200 )
-	}
-	
-	logPop( "checkCloseBrowserWindow()" )
+    logPush( "checkCloseBrowserWindow( " windowID " )" )
+
+    closeBrowserWindow()
+    WinWaitClose, ahk_id %windowID%,, %wait%
+    success := checkWindowIDClosed( windowID )
+
+    Loop, %retries%
+    {
+        if ( success )
+        {
+            break
+        }
+
+        ; For some reason it loses browser focus when toggled or switched to main monitor.
+        getBrowserFocus( windowID, 4, 200 )
+        closeBrowserWindow()
+        WinWaitClose, ahk_id %windowID%,, %wait%
+        success := checkWindowIDClosed( windowID )
+    }
+
+    logPop( "checkCloseBrowserWindow() -> " success )
+
+    return success
 }
 
 
@@ -306,19 +313,52 @@ toggleFullScreenEmbedYouTube()
 }
 
 
-; Full screen embed URL.
+; Full screen YouTube URL.
 toggleFullScreenYouTube( embed = true, fullScreen = -1 )
 {
-	log( "toggleFullScreenYouTube( " embed ", " fullScreen " )" )
-	
-	if ( embed || embed == "Embed" )
-	{
-		toggleFullScreenEmbedYouTube()
-	}
-	else
-	{
-		toggleFullScreenNormalYouTube()
-	}
+    log( "toggleFullScreenYouTube( " embed ", " fullScreen " )" )
+
+    if ( embed || embed == "Embed" )
+    {
+        toggleFullScreenEmbedYouTube()
+    }
+    else
+    {
+        toggleFullScreenNormalYouTube()
+    }
+}
+
+
+checkToggleFullScreenYouTube( embed = true, fullScreen = -1, retries = 0, wait = 200 )
+{
+    if ( ! checkActiveWindowFullScreen( fullScreen ) )
+    {
+        log( "toggleFullScreenYouTube( " embed ", " fullScreen " ), no toggle required" )
+
+        return true
+    }
+
+    logPush( "toggleFullScreenYouTube( " embed ", " fullScreen " )" )
+
+    toggleFullScreenYouTube( embed, fullScreen )
+    Sleep %wait%
+    success := ! checkActiveWindowFullScreen( fullScreen )
+
+    Loop, %retries%
+    {
+        if ( success )
+        {
+            break
+        }
+
+        toggleFullScreenYouTube( embed, fullScreen )
+        Sleep %wait%
+        success := ! checkActiveWindowFullScreen( fullScreen )
+    }
+
+    logPop( "toggleFullScreenYouTube() -> " success )
+
+    return success
 }
 
 
@@ -334,17 +374,17 @@ projectActiveWindowYouTube()
 
 getHoveredYouTubeURL()
 {
-	;SetKeyDelay, 400
+    ;SetKeyDelay, 400
     SendInput {Click right}
-	Sleep 400
-	SendInput a
-	Sleep 400
-	SendInput {Enter}
-  	;SetKeyDelay, -1
-  
+    Sleep 400
+    SendInput a
+    Sleep 400
+    SendInput {Enter}
+      ;SetKeyDelay, -1
+
     youTubeURL := getClipBoard()
     ; MsgBox %youTubeURL%
-    
+
     return youTubeURL
 }
 
@@ -353,7 +393,7 @@ getBrowserStatusBar()
 {
     StatusBarGetText, youTubeURL
     MsgBox %youTubeURL%
-    
+
     return youTubeURL
 }
 
@@ -375,16 +415,16 @@ getBrowserStatusBar()
 getBrowserFocus( windowID, tries = 4, delay = 800 )
 {
     logPush( "getBrowserFocus( " windowID ", " tries ", " delay " )" )
-    
+
     ; Click needs coordinates (mouse move).
-	windowCentre := getWindowIDCentre( windowID )
-    
-	; Getting the focus in the browser YouTube player is tricky. Right click a few times and ESC.
+    windowCentre := getWindowIDCentre( windowID )
+
+    ; Getting the focus in the browser YouTube player is tricky. Right click a few times and ESC.
     if ( windowCentre )
     {
         middleClick( windowCentre, tries, delay )
     }
-	
+
     logPop( "getBrowserFocus(), end" )
 }
 
@@ -392,7 +432,7 @@ getBrowserFocus( windowID, tries = 4, delay = 800 )
 pauseOrPlayYouTubeOrVideoLAN()
 {
     log( "pauseOrPlayYouTubeOrVideoLAN()" )
-    
+
     SendInput {Space}
     ; Requires a sleep otherwise the input misses the window if the window is switched afterwards.
     ; You'd think the event order would be preserved!
