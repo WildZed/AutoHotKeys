@@ -9,8 +9,8 @@ EdgeBrowser := { name : "Edge", exe : "", class : "ApplicationFrameWindow" }
 IEBrowser := { name : "IE", exe : "iexplore.exe", class : "IEFrame" }
 FirefoxBrowser := { name : "Firefox", exe : "firefox.exe", class : "MozillaWindowClass" }
 OperaBrowser := { name : "Opera", exe : "opera.exe", class : "Chrome_WidgetWin_1" }
-; SelectedBrowser := EdgeBrowser
-SelectedBrowser := IEBrowser
+SelectedBrowser := EdgeBrowser
+; SelectedBrowser := IEBrowser
 NormalYouTubeURL := "https://www.youtube.com/watch?v="
 EmbedYouTubeURL := "https://www.youtube.com/embed/"
 YouTubeData := { normalURL : NormalYouTubeURL, normalURLSize : StrLen( NormalYouTubeURL ), embedURL : EmbedYouTubeURL, embedURLSize : StrLen( EmbedYouTubeURL ), embedURLAutoPlay : "?autoplay=1", embedURLNoAutoPlay : "?autoplay=0", youTubeIDSize : 11 }
