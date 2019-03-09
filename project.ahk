@@ -575,6 +575,12 @@ pausePlayLaunched()
 {
     if ( ! checkLaunched( true, true ) )
     {
+		; Pause play on projection monitor.
+        storeActiveWindow()
+		monitorCentre := getProjectionMonitorCentre()
+		middleClick( monitorCentre )
+		pauseOrPlayYouTubeOrVideoLAN()
+		restoreActiveWindow()
         return
     }
 

@@ -141,6 +141,28 @@ switchToProjectionMonitor()
 }
 
 
+getProjectionMonitorArea()
+{
+	global ProjectionMonitor
+	
+	monitorArea := getMonitorArea( ProjectionMonitor )
+	
+	return monitorArea
+}
+
+
+getProjectionMonitorCentre()
+{
+	monitorArea := getProjectionMonitorArea()
+
+    cx := monitorArea.tl.x + ( monitorArea.width // 2 )
+    cy := monitorArea.tl.y + ( monitorArea.height // 2 )
+	monitorCentre := Point( cx, cy )
+	
+	return monitorCentre
+}
+
+
 toggleProjectionMonitor()
 {
 	global MainMonitor

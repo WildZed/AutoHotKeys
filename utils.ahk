@@ -48,6 +48,30 @@ Area( ctl, cwidth, cheight )
 }
 
 
+leftClick( position, numClicks = 1, delay = 0 )
+{	
+    storeMousePosition()
+    
+    CoordMode, Mouse, Screen
+	MouseMove, position.x, position.y
+	Click, left, position.x, position.y
+	
+	log( "middleClick( " position.x ", " position.y " )" )
+	
+	numClicks := numClicks - 1
+	
+	Loop, %numClicks%
+	{
+		Sleep %delay%
+		Click, left, position.x, position.y
+		
+		log( "middleClick( " position.x ", " position.y " )" )
+	}
+    
+    restoreMousePosition()
+}
+
+
 middleClick( position, numClicks = 1, delay = 0 )
 {	
     storeMousePosition()

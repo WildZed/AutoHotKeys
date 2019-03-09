@@ -359,7 +359,8 @@ getWindowIDCentre( windowID )
     cx := x + ( width // 2 )
     cy := y + ( height // 2 )
 	
-	windowArea = getMonitorArea( windowID )
+	monitor := getWindowIDMonitor( windowID )
+	windowArea := getMonitorArea( monitor )
 	
 	log( "getWindowIDCentre( " windowID " ) -> x=" x ", y=" y ", w=" width ", h=" height ", sw=" windowArea.width ", sh=" windowArea.height " -> cx=" cx ", cy=" cy )
 
